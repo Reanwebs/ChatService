@@ -2,15 +2,13 @@ package repository
 
 import (
 	"fmt"
-
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type GroupChatRepo struct {
-	DB mongo.Client
+	DB interface{}
 }
 
-func NewGroupChatRepo(dbClient mongo.Client) GroupChatRepoMethods {
+func NewGroupChatRepo(dbClient interface{}) GroupChatRepoMethods {
 	return GroupChatRepo{
 		DB: dbClient,
 	}

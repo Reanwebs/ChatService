@@ -7,9 +7,11 @@ import (
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-func ConnectDB(cfg Config) (mongo.Client, error) {
+func ConnectDB(cfg Config) (interface{}, error) {
 	clientOptions := options.Client().ApplyURI(cfg.MongoURI)
 
 	client, err := mongo.Connect(context.Background(), clientOptions)
@@ -23,4 +25,19 @@ func ConnectDB(cfg Config) (mongo.Client, error) {
 	fmt.Println("Connected to MongoDB")
 
 	return *client, nil
+}
+
+type Chat struct {
+	UserName string
+}
+
+func ConnectPsqlDB(cfg Config) (interface{}, error) {
+	psqlInfo := fmt.Sprintf("host=%s user=%s dbname=%s port=%s password=%s", cfg.DbHost, cfg.DbUser, cfg.DbName, cfg.DbPort, cfg.DbPassword)
+	db, err := gorm.Open(postgres.Open(psqlInfo), &gorm.Config{})
+	if err != nil {
+		log.Fatalln(err)
+		return nil, err
+	}
+	db.AutoMigrate(Chat{})
+	return db, nil
 }

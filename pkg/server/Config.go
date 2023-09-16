@@ -7,8 +7,13 @@ import (
 )
 
 type Config struct {
-	Port     string `mapstructure:"PORT"`
-	MongoURI string `mapstructure:"MONGO_URI"`
+	Port       string `mapstructure:"PORT"`
+	MongoURI   string `mapstructure:"MONGO_URI"`
+	DbHost     string `mapstructure:"DB_HOST"`
+	DbName     string `mapstructure:"DB_NAME"`
+	DbUser     string `mapstructure:"DB_USER"`
+	DbPort     string `mapstructure:"DB_PORT"`
+	DbPassword string `mapstructure:"DB_PASSWORD"`
 }
 
 func LoadConfig() (config Config, err error) {

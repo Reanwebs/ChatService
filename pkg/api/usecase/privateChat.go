@@ -19,5 +19,5 @@ type PrivateChatUsecaseMethods interface {
 }
 
 func (r PrivateChatUsecase) PrivateChatStart() {
-
+	r.PrivateChatRepo.CreatePrivateChat()
 }

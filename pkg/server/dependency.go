@@ -9,7 +9,7 @@ import (
 
 func InitializeApi(config Config) (*Server, error) {
 
-	dbClient, err := ConnectDB(config)
+	dbClient, err := ConnectPsqlDB(config)
 	if err != nil {
 		log.Println("error in connecting DB", err)
 	}

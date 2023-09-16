@@ -2,15 +2,13 @@ package repository
 
 import (
 	"fmt"
-
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type PrivateChatRepo struct {
-	DB mongo.Client
+	DB interface{}
 }
 
-func NewPrivateChatRepo(dbClient mongo.Client) PrivateChatRepoMethods {
+func NewPrivateChatRepo(dbClient interface{}) PrivateChatRepoMethods {
 	return PrivateChatRepo{
 		DB: dbClient,
 	}
