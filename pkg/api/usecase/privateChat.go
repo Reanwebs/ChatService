@@ -1,6 +1,8 @@
 package usecase
 
-import "chat/pkg/api/repository"
+import (
+	"chat/pkg/api/repository"
+)
 
 type PrivateChatUsecase struct {
 	PrivateChatRepo repository.PrivateChatRepoMethods
@@ -17,5 +19,5 @@ type PrivateChatUsecaseMethods interface {
 }
 
 func (r PrivateChatUsecase) PrivateChatStart() {
-	r.PrivateChatRepo.CreatePrivateChat()
+
 }

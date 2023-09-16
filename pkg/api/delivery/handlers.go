@@ -24,6 +24,7 @@ type ChatHandlerMethods interface {
 }
 
 func (h ChatHandler) GetPrivateChat(c *gin.Context) {
+
 	h.PrivateChatUsecase.PrivateChatStart()
 }
 
