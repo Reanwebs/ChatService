@@ -1,5 +1,25 @@
 package repository
 
-import "go.mongodb.org/mongo-driver/mongo"
+import (
+	"fmt"
 
-func NewGroupChatRepo(DB mongo.Client)
+	"go.mongodb.org/mongo-driver/mongo"
+)
+
+type GroupChatRepo struct {
+	DB mongo.Client
+}
+
+func NewGroupChatRepo(dbClient mongo.Client) GroupChatRepoMethods {
+	return GroupChatRepo{
+		DB: dbClient,
+	}
+}
+
+type GroupChatRepoMethods interface {
+	CreateGroupChat()
+}
+
+func (r GroupChatRepo) CreateGroupChat() {
+	fmt.Println("injected")
+}

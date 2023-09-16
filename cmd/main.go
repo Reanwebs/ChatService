@@ -11,8 +11,10 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	err = server.InitializeApi(config)
+	ginServer, err := server.InitializeApi(config)
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	server.Start(ginServer, config)
 }

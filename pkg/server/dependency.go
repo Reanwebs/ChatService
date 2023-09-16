@@ -1,26 +1,30 @@
 package server
 
 import (
+	"chat/pkg/api/delivery"
+	"chat/pkg/api/repository"
+	"chat/pkg/api/usecase"
 	"log"
 )
 
-func InitializeApi(config Config) error {
+func InitializeApi(config Config) (*Server, error) {
 
-	_, err := ConnectDB(config)
+	dbClient, err := ConnectDB(config)
 	if err != nil {
 		log.Println("error in connecting DB", err)
 	}
 
-	// privateRepo := repository.NewPrivateChatRepo(DB)
-	// groupRepo := repository.NewGroupChatRepo(DB)
+	privateRepo := repository.NewPrivateChatRepo(dbClient)
+	groupRepo := repository.NewGroupChatRepo(dbClient)
 
-	// privateUsecase := usecase.NewPrivateChatUsecase(privateRepo)
+	privateUsecase := usecase.NewPrivateChatUsecase(privateRepo)
+	groupUsecase := usecase.NewGroupChatUsecase(groupRepo)
 
-	// groupUsecase := usecase.NewGroupChatUsecase(groupRepo)
+	handler := delivery.NewChatHandler(privateUsecase, groupUsecase)
 
-	// handler := delivery.NewChatHandler(privateUsecase, groupUsecase)
+	routes := delivery.NewChatRoutes(handler)
 
-	// routes := delivery.NewChatRoutes(handler)
+	server := NewServer(routes, config)
 
-	return nil
+	return &server, nil
 }
