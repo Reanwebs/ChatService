@@ -1,7 +1,20 @@
 package main
 
-import "fmt"
+import (
+	"chat/pkg/server"
+	"log"
+)
 
 func main() {
-	fmt.Println("hi let's chat")
+	config, err := server.LoadConfig()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	ginServer, err := server.InitializeApi(config)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	server.Start(ginServer, config)
 }
