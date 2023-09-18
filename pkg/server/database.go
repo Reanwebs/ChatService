@@ -1,6 +1,7 @@
 package server
 
 import (
+	"chat/pkg/api/domain"
 	"context"
 	"fmt"
 	"log"
@@ -34,6 +35,6 @@ func ConnectPsqlDB(cfg Config) (*gorm.DB, error) {
 		log.Fatalln(err)
 		return nil, err
 	}
-	db.AutoMigrate()
+	db.AutoMigrate(domain.PrivateChat{})
 	return db, nil
 }

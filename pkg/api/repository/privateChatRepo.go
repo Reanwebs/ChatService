@@ -1,7 +1,8 @@
 package repository
 
 import (
-	"fmt"
+	"chat/pkg/api/domain"
+	"log"
 
 	"gorm.io/gorm"
 )
@@ -17,10 +18,12 @@ func NewPrivateChatRepo(dbClient *gorm.DB) PrivateChatRepoMethods {
 }
 
 type PrivateChatRepoMethods interface {
-	CreatePrivateChat()
+	CreatePrivateChat(domain.PrivateChat) error
 }
 
-func (r PrivateChatRepo) CreatePrivateChat() {
-
-	fmt.Println("injected")
+func (r PrivateChatRepo) CreatePrivateChat(input domain.PrivateChat) error {
+	if result := r.DB.Create(&input); result.Error != nil {
+		log.Println(result.Error)
+	}
+	return nil
 }
