@@ -18,12 +18,18 @@ func NewPrivateChatUsecase(repo repository.PrivateChatRepoMethods) PrivateChatUs
 }
 
 type PrivateChatUsecaseMethods interface {
-	PrivateChatStart()
+	PrivateChatList(models.GetChat) ([]models.PrivateChat, error)
 	StartChat(models.PrivateChat) error
 }
 
-func (r PrivateChatUsecase) PrivateChatStart() {
-	// r.PrivateChatRepo.CreatePrivateChat()
+func (r PrivateChatUsecase) PrivateChatList(input models.GetChat) ([]models.PrivateChat, error) {
+	response := []models.PrivateChat{}
+	response, err := r.PrivateChatRepo.GetChatList(input.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
 
 func (r PrivateChatUsecase) StartChat(input models.PrivateChat) error {

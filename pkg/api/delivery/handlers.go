@@ -29,9 +29,18 @@ type ChatHandlerMethods interface {
 }
 
 func (h ChatHandler) GetPrivateChat(c *gin.Context) {
-
-	c.JSON(http.StatusAccepted, "Hi private chat route connected")
-	h.PrivateChatUsecase.PrivateChatStart()
+	input := models.GetChat{}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusUnprocessableEntity, errors.Join(errors.New("JSON Binding failed"), err))
+		return
+	}
+	response, err := h.PrivateChatUsecase.PrivateChatList(input)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+	c.JSON(http.StatusOK, response)
 }
 
 func (h ChatHandler) StartPrivateChat(c *gin.Context) {
@@ -41,13 +50,11 @@ func (h ChatHandler) StartPrivateChat(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, errors.Join(errors.New("JSON Binding failed"), err))
 		return
 	}
-
 	if err := h.PrivateChatUsecase.StartChat(input); err != nil {
 		log.Println(err)
 		c.JSON(http.StatusBadRequest, err)
 		return
 	}
-
 	c.JSON(http.StatusCreated, "Private chat started")
 }
 

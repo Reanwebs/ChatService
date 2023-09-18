@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"chat/pkg/api/delivery/models"
 	"chat/pkg/api/domain"
 	"log"
 
@@ -19,6 +20,15 @@ func NewPrivateChatRepo(dbClient *gorm.DB) PrivateChatRepoMethods {
 
 type PrivateChatRepoMethods interface {
 	CreatePrivateChat(domain.PrivateChat) error
+	GetChatList(string) ([]models.PrivateChat, error)
+}
+
+func (r PrivateChatRepo) GetChatList(userID string) ([]models.PrivateChat, error) {
+	var chatList []models.PrivateChat
+	if err := r.DB.Where("user_id = ?", userID).Find(&chatList).Error; err != nil {
+		return nil, err
+	}
+	return chatList, nil
 }
 
 func (r PrivateChatRepo) CreatePrivateChat(input domain.PrivateChat) error {

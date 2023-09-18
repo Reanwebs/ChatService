@@ -18,7 +18,7 @@ func NewChatRoutes(handler ChatHandler) ChatRoutes {
 
 func (h ChatRoutes) SetPrivteChatRoutes(router *gin.Engine) {
 	router.GET("ws", websocket.HandleSocketConnection)
-	router.GET("chat/private", h.ChatHandler.GetPrivateChat)
+	router.POST("chat/get", h.ChatHandler.GetPrivateChat)
 	router.POST("chat/create", h.ChatHandler.StartPrivateChat)
 
 }
