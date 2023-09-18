@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func ConnectDB(cfg Config) (interface{}, error) {
+func ConnectDB(cfg Config) (mongo.Client, error) {
 	clientOptions := options.Client().ApplyURI(cfg.MongoURI)
 
 	client, err := mongo.Connect(context.Background(), clientOptions)
@@ -27,17 +27,13 @@ func ConnectDB(cfg Config) (interface{}, error) {
 	return *client, nil
 }
 
-type Chat struct {
-	UserName string
-}
-
-func ConnectPsqlDB(cfg Config) (interface{}, error) {
+func ConnectPsqlDB(cfg Config) (*gorm.DB, error) {
 	psqlInfo := fmt.Sprintf("host=%s user=%s dbname=%s port=%s password=%s", cfg.DbHost, cfg.DbUser, cfg.DbName, cfg.DbPort, cfg.DbPassword)
 	db, err := gorm.Open(postgres.Open(psqlInfo), &gorm.Config{})
 	if err != nil {
 		log.Fatalln(err)
 		return nil, err
 	}
-	db.AutoMigrate(Chat{})
+	db.AutoMigrate()
 	return db, nil
 }

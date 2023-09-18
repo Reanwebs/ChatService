@@ -15,7 +15,6 @@ func NewChatRoutes(handler ChatHandler) ChatRoutes {
 }
 
 func (h ChatRoutes) SetPrivteChatRoutes(router *gin.Engine) {
-
 	router.GET("/private/chat", h.ChatHandler.GetPrivateChat)
 
 }

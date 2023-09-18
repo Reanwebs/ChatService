@@ -2,13 +2,15 @@ package repository
 
 import (
 	"fmt"
+
+	"gorm.io/gorm"
 )
 
 type PrivateChatRepo struct {
-	DB interface{}
+	DB *gorm.DB
 }
 
-func NewPrivateChatRepo(dbClient interface{}) PrivateChatRepoMethods {
+func NewPrivateChatRepo(dbClient *gorm.DB) PrivateChatRepoMethods {
 	return PrivateChatRepo{
 		DB: dbClient,
 	}
@@ -19,5 +21,6 @@ type PrivateChatRepoMethods interface {
 }
 
 func (r PrivateChatRepo) CreatePrivateChat() {
+
 	fmt.Println("injected")
 }
