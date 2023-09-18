@@ -1,6 +1,8 @@
 package delivery
 
 import (
+	websocket "chat/pkg/api/delivery/webSocket"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,8 +17,9 @@ func NewChatRoutes(handler ChatHandler) ChatRoutes {
 }
 
 func (h ChatRoutes) SetPrivteChatRoutes(router *gin.Engine) {
-
-	router.GET("/private/chat", h.ChatHandler.GetPrivateChat)
+	router.GET("ws", websocket.HandleSocketConnection)
+	router.POST("chat/get", h.ChatHandler.GetPrivateChat)
+	router.POST("chat/create", h.ChatHandler.StartPrivateChat)
 
 }
 

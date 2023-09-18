@@ -2,13 +2,15 @@ package repository
 
 import (
 	"fmt"
+
+	"gorm.io/gorm"
 )
 
 type GroupChatRepo struct {
-	DB interface{}
+	DB *gorm.DB
 }
 
-func NewGroupChatRepo(dbClient interface{}) GroupChatRepoMethods {
+func NewGroupChatRepo(dbClient *gorm.DB) GroupChatRepoMethods {
 	return GroupChatRepo{
 		DB: dbClient,
 	}
