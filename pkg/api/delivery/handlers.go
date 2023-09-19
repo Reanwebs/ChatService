@@ -10,6 +10,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var UserID string
+
 type ChatHandler struct {
 	PrivateChatUsecase usecase.PrivateChatUsecaseMethods
 	GroupChatUsecase   usecase.GroupChatUsecaseMethods
@@ -30,6 +32,7 @@ type ChatHandlerMethods interface {
 
 func (h ChatHandler) GetPrivateChat(c *gin.Context) {
 	input := models.GetChat{}
+	UserID = input.UserID
 	if err := c.ShouldBindJSON(&input); err != nil {
 		log.Println(err)
 		c.JSON(http.StatusUnprocessableEntity, errors.Join(errors.New("JSON Binding failed"), err))

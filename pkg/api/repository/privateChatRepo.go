@@ -32,8 +32,19 @@ func (r PrivateChatRepo) GetChatList(userID string) ([]models.PrivateChat, error
 }
 
 func (r PrivateChatRepo) CreatePrivateChat(input domain.PrivateChat) error {
-	if result := r.DB.Create(&input); result.Error != nil {
-		log.Println(result.Error)
+	var existingRecord domain.PrivateChat
+
+	if result := r.DB.Where("user_id = ? AND recipient_id = ?", input.UserID, input.RecipientID).First(&existingRecord); result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			if result := r.DB.Create(&input); result.Error != nil {
+				log.Println(result.Error)
+				return result.Error
+			}
+		} else {
+			log.Println(result.Error)
+			return result.Error
+		}
 	}
+
 	return nil
 }
