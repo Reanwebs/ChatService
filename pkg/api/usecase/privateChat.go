@@ -4,6 +4,8 @@ import (
 	"chat/pkg/api/delivery/models"
 	"chat/pkg/api/domain"
 	"chat/pkg/api/repository"
+	"log"
+	"sync"
 	"time"
 )
 
@@ -18,18 +20,9 @@ func NewPrivateChatUsecase(repo repository.PrivateChatRepoMethods) PrivateChatUs
 }
 
 type PrivateChatUsecaseMethods interface {
-	PrivateChatList(models.GetChat) ([]models.PrivateChat, error)
 	StartChat(models.PrivateChat) error
-}
-
-func (r PrivateChatUsecase) PrivateChatList(input models.GetChat) ([]models.PrivateChat, error) {
-	response := []models.PrivateChat{}
-	response, err := r.PrivateChatRepo.GetChatList(input.UserID)
-	if err != nil {
-		return nil, err
-	}
-
-	return response, nil
+	PrivateChatList(models.GetChat) ([]models.PrivateChat, error)
+	PrivateChatHistory(string, string) ([]models.PrivateChatWithHistory, error)
 }
 
 func (r PrivateChatUsecase) StartChat(input models.PrivateChat) error {
@@ -44,4 +37,59 @@ func (r PrivateChatUsecase) StartChat(input models.PrivateChat) error {
 	}
 
 	return nil
+}
+
+func (r PrivateChatUsecase) PrivateChatList(input models.GetChat) ([]models.PrivateChat, error) {
+	response := []models.PrivateChat{}
+	response, err := r.PrivateChatRepo.GetChatList(input.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func (r PrivateChatUsecase) PrivateChatHistory(userID string, recipientID string) ([]models.PrivateChatWithHistory, error) {
+	response := []models.PrivateChatWithHistory{}
+	var wg sync.WaitGroup
+	result, err := r.PrivateChatRepo.GetPrivateChatHistory(userID, recipientID)
+	if err != nil {
+		log.Println("PrivateChatHistoryRepo", err)
+		return nil, err
+	}
+
+	responseChan := make(chan models.PrivateChatWithHistory)
+
+	for _, chat := range result {
+		wg.Add(1)
+		go func(chat domain.PrivateChatWithHistory) {
+			defer wg.Done()
+			responseChan <- MapDomainToModel(chat)
+		}(chat)
+	}
+
+	go func() {
+		wg.Wait()
+		close(responseChan)
+	}()
+
+	for mappedChat := range responseChan {
+		response = append(response, mappedChat)
+	}
+
+	return response, nil
+}
+
+func MapDomainToModel(Chat domain.PrivateChatWithHistory) models.PrivateChatWithHistory {
+	return models.PrivateChatWithHistory{
+		PrivateChat: models.PrivateChat{
+			UserID:      Chat.PrivateChat.UserID,
+			RecipientID: Chat.PrivateChat.RecipientID,
+		},
+		PrivateChatHistory: models.PrivateChatHistory{
+			Text:   Chat.PrivateChatHistory.Text,
+			Status: Chat.PrivateChatHistory.Status,
+			Time:   Chat.PrivateChatHistory.Time,
+		},
+	}
 }

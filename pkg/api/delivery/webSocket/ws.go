@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -32,9 +31,7 @@ type WebSocketMessage struct {
 }
 
 func HandleSocketConnection(c *gin.Context) {
-	fmt.Println("entered to handle fun")
 	userID := c.GetString("userId")
-	fmt.Println(userID)
 
 	if userID == "64ef152f4ca2c6fe73feaf9d" {
 		socketID = "Edwin"
@@ -69,17 +66,15 @@ func HandleSocketConnection(c *gin.Context) {
 		if err := json.Unmarshal(p, &wsMessage); err != nil {
 			log.Println("Error decoding WebSocket message:", err)
 		} else {
-			connectedMessage := []byte(wsMessage.Text)
-			err = conn.WriteMessage(websocket.TextMessage, connectedMessage)
-			if err != nil {
-				log.Println("Error sending message:", err)
-				return
+			recipient := wsMessage.Recipient
+			if recipientConn, ok := connectedClients[recipient]; ok {
+				err := recipientConn.WriteMessage(websocket.TextMessage, p)
+				if err != nil {
+					log.Println("Error forwarding message to recipient:", err)
+				}
+			} else {
+				log.Println("Recipient is not connected")
 			}
-			fmt.Println("Received message from", wsMessage.Sender)
-			fmt.Println("Recipient:", wsMessage.Recipient)
-			fmt.Println("Message text:", wsMessage.Text)
-			continue
 		}
-
 	}
 }

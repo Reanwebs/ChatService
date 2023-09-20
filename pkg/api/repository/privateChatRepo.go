@@ -21,14 +21,7 @@ func NewPrivateChatRepo(dbClient *gorm.DB) PrivateChatRepoMethods {
 type PrivateChatRepoMethods interface {
 	CreatePrivateChat(domain.PrivateChat) error
 	GetChatList(string) ([]models.PrivateChat, error)
-}
-
-func (r PrivateChatRepo) GetChatList(userID string) ([]models.PrivateChat, error) {
-	var chatList []models.PrivateChat
-	if err := r.DB.Where("user_id = ?", userID).Find(&chatList).Error; err != nil {
-		return nil, err
-	}
-	return chatList, nil
+	GetPrivateChatHistory(string, string) ([]domain.PrivateChatWithHistory, error)
 }
 
 func (r PrivateChatRepo) CreatePrivateChat(input domain.PrivateChat) error {
@@ -47,4 +40,27 @@ func (r PrivateChatRepo) CreatePrivateChat(input domain.PrivateChat) error {
 	}
 
 	return nil
+}
+
+func (r PrivateChatRepo) GetChatList(userID string) ([]models.PrivateChat, error) {
+	var chatList []models.PrivateChat
+	if err := r.DB.Where("user_id = ?", userID).Find(&chatList).Error; err != nil {
+		return nil, err
+	}
+	return chatList, nil
+}
+
+func (r PrivateChatRepo) GetPrivateChatHistory(userID string, recipientID string) ([]domain.PrivateChatWithHistory, error) {
+	var chats []domain.PrivateChatWithHistory
+	err := r.DB.Table("private_chats").
+		Select("private_chats.*, private_chat_histories.text, private_chat_histories.status, private_chat_histories.time").
+		Joins("LEFT JOIN private_chat_histories ON private_chats.id = private_chat_histories.private_chat_id").
+		Where("private_chats.user_id = ? AND private_chats.recipient_id = ?", userID, recipientID).
+		Find(&chats).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return chats, nil
 }

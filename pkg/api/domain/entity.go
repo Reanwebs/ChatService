@@ -14,6 +14,18 @@ type PrivateChat struct {
 	LastSeen    time.Time
 }
 
+type PrivateChatHistory struct {
+	gorm.Model
+	UserID      string
+	RecipientID string
+	Text        string
+	Status      string
+	Time        time.Time
+}
+type PrivateChatWithHistory struct {
+	PrivateChat
+	PrivateChatHistory
+}
 type ChatHistory struct {
 	gorm.Model
 	UserID      string

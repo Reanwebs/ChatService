@@ -27,6 +27,7 @@ func NewChatHandler(privateUsecase usecase.PrivateChatUsecaseMethods, groupUseca
 type ChatHandlerMethods interface {
 	GetPrivateChat(c *gin.Context)
 	StartPrivateChat(c *gin.Context)
+	PrivateChatHistory(c *gin.Context)
 	GroupChatStart(c *gin.Context)
 }
 
@@ -60,6 +61,23 @@ func (h ChatHandler) StartPrivateChat(c *gin.Context) {
 	}
 	c.JSON(http.StatusCreated, "Private chat started")
 }
+
+func (h ChatHandler) PrivateChatHistory(c *gin.Context) {
+	input := models.PrivateChat{}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusUnprocessableEntity, errors.Join(errors.New("JSON Binding failed"), err))
+		return
+	}
+	response, err := h.PrivateChatUsecase.PrivateChatHistory(input.UserID, input.RecipientID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errors.Join(errors.New("Server error"), err))
+		return
+	}
+	c.JSON(http.StatusOK, response)
+}
+
+//Group Chat Handlers
 
 func (h ChatHandler) GetGroupChat(c *gin.Context) {
 	h.GroupChatUsecase.GroupChatStart()
