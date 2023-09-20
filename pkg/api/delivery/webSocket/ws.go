@@ -1,7 +1,10 @@
 package websocket
 
 import (
+	"chat/pkg/api/delivery/models"
+	"chat/pkg/api/usecase"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -9,6 +12,24 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
+
+type WebSocketHandler struct {
+	WebSocketMethods
+	PrivateChatUsecase usecase.PrivateChatUsecaseMethods
+	GroupChatUsecase   usecase.GroupChatUsecaseMethods
+}
+
+type WebSocketMethods interface {
+	HandleSocketConnection(*gin.Context)
+	AddPrivateChatHistory(string, string, *gin.Context)
+}
+
+func NewWebSocketHandler(privateUsecase usecase.PrivateChatUsecaseMethods, groupUsecase usecase.GroupChatUsecaseMethods) WebSocketMethods {
+	return WebSocketHandler{
+		PrivateChatUsecase: privateUsecase,
+		GroupChatUsecase:   groupUsecase,
+	}
+}
 
 var (
 	connectedClients = make(map[string]*websocket.Conn)
@@ -30,7 +51,7 @@ type WebSocketMessage struct {
 	Time      time.Time `json:"time"`
 }
 
-func HandleSocketConnection(c *gin.Context) {
+func (w WebSocketHandler) HandleSocketConnection(c *gin.Context) {
 	userID := c.GetString("userId")
 
 	if userID == "64ef152f4ca2c6fe73feaf9d" {
@@ -74,7 +95,24 @@ func HandleSocketConnection(c *gin.Context) {
 				}
 			} else {
 				log.Println("Recipient is not connected")
+
+				w.AddPrivateChatHistory(recipient, wsMessage.Text, c)
 			}
 		}
 	}
+}
+
+func (w WebSocketHandler) AddPrivateChatHistory(recipientId string, Text string, c *gin.Context) {
+	userId := c.GetString("userId")
+	input := models.PrivateChatHistory{
+		Text:   Text,
+		Status: "undelivered",
+		Time:   time.Now(),
+	}
+
+	if err := w.PrivateChatUsecase.CreatePrivateChatHistory(userId, recipientId, input); err != nil {
+		log.Println(err)
+		fmt.Println(err)
+	}
+
 }

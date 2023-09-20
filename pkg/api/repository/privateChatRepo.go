@@ -3,6 +3,7 @@ package repository
 import (
 	"chat/pkg/api/delivery/models"
 	"chat/pkg/api/domain"
+	"fmt"
 	"log"
 
 	"gorm.io/gorm"
@@ -21,7 +22,8 @@ func NewPrivateChatRepo(dbClient *gorm.DB) PrivateChatRepoMethods {
 type PrivateChatRepoMethods interface {
 	CreatePrivateChat(domain.PrivateChat) error
 	GetChatList(string) ([]models.PrivateChat, error)
-	GetPrivateChatHistory(string, string) ([]domain.PrivateChatWithHistory, error)
+	AddPrivateChatHistory(domain.PrivateChatHistory) error
+	GetPrivateChatHistory(string, string) ([]domain.PrivateChatHistory, error)
 }
 
 func (r PrivateChatRepo) CreatePrivateChat(input domain.PrivateChat) error {
@@ -50,12 +52,19 @@ func (r PrivateChatRepo) GetChatList(userID string) ([]models.PrivateChat, error
 	return chatList, nil
 }
 
-func (r PrivateChatRepo) GetPrivateChatHistory(userID string, recipientID string) ([]domain.PrivateChatWithHistory, error) {
-	var chats []domain.PrivateChatWithHistory
-	err := r.DB.Table("private_chats").
-		Select("private_chats.*, private_chat_histories.text, private_chat_histories.status, private_chat_histories.time").
-		Joins("LEFT JOIN private_chat_histories ON private_chats.id = private_chat_histories.private_chat_id").
-		Where("private_chats.user_id = ? AND private_chats.recipient_id = ?", userID, recipientID).
+func (r PrivateChatRepo) AddPrivateChatHistory(chat domain.PrivateChatHistory) error {
+	result := r.DB.Create(&chat)
+
+	if result.Error != nil {
+
+		fmt.Println(result.Error)
+	}
+	return nil
+}
+
+func (r PrivateChatRepo) GetPrivateChatHistory(userID string, recipientID string) ([]domain.PrivateChatHistory, error) {
+	var chats []domain.PrivateChatHistory
+	err := r.DB.Where("user_id = ? AND recipient_id = ?", userID, recipientID).
 		Find(&chats).Error
 
 	if err != nil {

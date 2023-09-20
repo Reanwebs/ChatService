@@ -35,6 +35,6 @@ func ConnectPsqlDB(cfg Config) (*gorm.DB, error) {
 		log.Fatalln(err)
 		return nil, err
 	}
-	db.AutoMigrate(domain.PrivateChat{})
+	db.AutoMigrate(domain.PrivateChat{}, domain.ChatHistory{}, domain.PrivateChatHistory{})
 	return db, nil
 }

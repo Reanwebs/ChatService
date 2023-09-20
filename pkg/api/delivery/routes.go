@@ -7,23 +7,26 @@ import (
 )
 
 type ChatRoutes struct {
-	ChatHandler ChatHandler
-	Middleware  MiddlewareMethods
+	ChatHandler      ChatHandler
+	WebSocketHandler websocket.WebSocketMethods
+	Middleware       MiddlewareMethods
 }
 
-func NewChatRoutes(handler ChatHandler) ChatRoutes {
+func NewChatRoutes(handler ChatHandler, wsHandler websocket.WebSocketMethods) ChatRoutes {
 	return ChatRoutes{
-		ChatHandler: handler,
-		Middleware:  Middleware{},
+		ChatHandler:      handler,
+		WebSocketHandler: wsHandler,
+		Middleware:       Middleware{},
 	}
 }
 
 func (h ChatRoutes) SetPrivteChatRoutes(router *gin.Engine) {
 
 	router.Use(h.Middleware.AuthenticateUser)
-	router.GET("ws", websocket.HandleSocketConnection)
-	router.POST("chat/get", h.ChatHandler.GetPrivateChat)
-	router.POST("chat/create", h.ChatHandler.StartPrivateChat)
+	router.GET("ws", h.WebSocketHandler.HandleSocketConnection)
+	router.POST("chat/get-chatlist", h.ChatHandler.GetPrivateChat)
+	router.POST("chat/create-chat", h.ChatHandler.StartPrivateChat)
+	router.POST("chat/get-chat", h.ChatHandler.PrivateChatHistory)
 
 }
 
