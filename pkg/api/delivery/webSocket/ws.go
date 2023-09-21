@@ -21,7 +21,7 @@ type WebSocketHandler struct {
 
 type WebSocketMethods interface {
 	HandleSocketConnection(*gin.Context)
-	AddPrivateChatHistory(string, string, *gin.Context)
+	AddPrivateChatHistory(string, string, string, string, *gin.Context)
 }
 
 func NewWebSocketHandler(privateUsecase usecase.PrivateChatUsecaseMethods, groupUsecase usecase.GroupChatUsecaseMethods) WebSocketMethods {
@@ -52,20 +52,14 @@ type WebSocketMessage struct {
 }
 
 func (w WebSocketHandler) HandleSocketConnection(c *gin.Context) {
-	userID := c.GetString("userId")
-
-	if userID == "64ef152f4ca2c6fe73feaf9d" {
-		socketID = "Edwin"
-	} else {
-		socketID = "EdwinV2"
-	}
+	userName := c.DefaultQuery("userName", "")
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Println("socket connection err :", err)
 		return
 	}
 
-	connectedClients[socketID] = conn
+	connectedClients[userName] = conn
 
 	connectedMessage := []byte("Connected to the server")
 	err = conn.WriteMessage(websocket.TextMessage, connectedMessage)
@@ -93,20 +87,20 @@ func (w WebSocketHandler) HandleSocketConnection(c *gin.Context) {
 				if err != nil {
 					log.Println("Error forwarding message to recipient:", err)
 				}
+				w.AddPrivateChatHistory(userName, recipient, "delivered", wsMessage.Text, c)
 			} else {
 				log.Println("Recipient is not connected")
 
-				w.AddPrivateChatHistory(recipient, wsMessage.Text, c)
+				w.AddPrivateChatHistory(userName, recipient, "undelivered", wsMessage.Text, c)
 			}
 		}
 	}
 }
 
-func (w WebSocketHandler) AddPrivateChatHistory(recipientId string, Text string, c *gin.Context) {
-	userId := c.GetString("userId")
+func (w WebSocketHandler) AddPrivateChatHistory(userId string, recipientId string, status string, Text string, c *gin.Context) {
 	input := models.PrivateChatHistory{
 		Text:   Text,
-		Status: "undelivered",
+		Status: status,
 		Time:   time.Now(),
 	}
 

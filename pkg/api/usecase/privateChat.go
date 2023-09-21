@@ -23,6 +23,7 @@ type PrivateChatUsecaseMethods interface {
 	PrivateChatList(models.GetChat) ([]models.PrivateChat, error)
 	CreatePrivateChatHistory(string, string, models.PrivateChatHistory) error
 	RetrivePrivateChatHistory(string, string) ([]models.PrivateChatHistory, error)
+	RetriveRecievedChatHistory(string, string) ([]models.PrivateChatHistory, error)
 }
 
 func (r PrivateChatUsecase) StartChat(input models.PrivateChat) error {
@@ -85,16 +86,23 @@ func (r PrivateChatUsecase) RetrivePrivateChatHistory(userID string, recipientID
 	return response, nil
 }
 
-// func MapDomainToModel(Chat domain.PrivateChatWithHistory) models.PrivateChatWithHistory {
-// 	return models.PrivateChatWithHistory{
-// 		PrivateChat: models.PrivateChat{
-// 			UserID:      Chat.PrivateChat.UserID,
-// 			RecipientID: Chat.PrivateChat.RecipientID,
-// 		},
-// 		PrivateChatHistory: models.PrivateChatHistory{
-// 			Text:   Chat.PrivateChatHistory.Text,
-// 			Status: Chat.PrivateChatHistory.Status,
-// 			Time:   Chat.PrivateChatHistory.Time,
-// 		},
-// 	}
-// }
+func (r PrivateChatUsecase) RetriveRecievedChatHistory(userID string, recipientID string) ([]models.PrivateChatHistory, error) {
+	response := []models.PrivateChatHistory{}
+	result, err := r.PrivateChatRepo.GetRecievedChatHistory(userID, recipientID)
+	if err != nil {
+		log.Println("PrivateChatHistoryRepo", err)
+		return nil, err
+	}
+
+	for _, chat := range result {
+		response = append(response, models.PrivateChatHistory{
+			UserID:      chat.UserID,
+			RecipientID: chat.RecipientID,
+			Text:        chat.Text,
+			Status:      chat.Status,
+			Time:        chat.Time,
+		})
+	}
+
+	return response, nil
+}

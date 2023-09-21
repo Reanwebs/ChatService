@@ -20,3 +20,7 @@ type PrivateChatHistory struct {
 	Status      string `json:"Status"`
 	Time        time.Time
 }
+
+type ChatHistoryResponse struct {
+	Messages []PrivateChatHistory `json:"messages"`
+}

@@ -24,6 +24,7 @@ type PrivateChatRepoMethods interface {
 	GetChatList(string) ([]models.PrivateChat, error)
 	AddPrivateChatHistory(domain.PrivateChatHistory) error
 	GetPrivateChatHistory(string, string) ([]domain.PrivateChatHistory, error)
+	GetRecievedChatHistory(string, string) ([]domain.PrivateChatHistory, error)
 }
 
 func (r PrivateChatRepo) CreatePrivateChat(input domain.PrivateChat) error {
@@ -65,6 +66,18 @@ func (r PrivateChatRepo) AddPrivateChatHistory(chat domain.PrivateChatHistory) e
 func (r PrivateChatRepo) GetPrivateChatHistory(userID string, recipientID string) ([]domain.PrivateChatHistory, error) {
 	var chats []domain.PrivateChatHistory
 	err := r.DB.Where("user_id = ? AND recipient_id = ?", userID, recipientID).
+		Find(&chats).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return chats, nil
+}
+
+func (r PrivateChatRepo) GetRecievedChatHistory(userID string, recipientID string) ([]domain.PrivateChatHistory, error) {
+	var chats []domain.PrivateChatHistory
+	err := r.DB.Where("user_id = ? AND recipient_id = ?", recipientID, userID).
 		Find(&chats).Error
 
 	if err != nil {
