@@ -21,7 +21,6 @@ func NewChatRoutes(handler ChatHandlerMethods, wsHandler websocket.WebSocketMeth
 }
 
 func (h ChatRoutes) SetPrivteChatRoutes(router *gin.Engine) {
-
 	router.Use(h.Middleware.AuthenticateUser)
 	router.GET("ws", h.WebSocketHandler.HandleSocketConnection)
 	router.POST("chat/get-chatlist", h.ChatHandler.GetPrivateChat)
@@ -31,7 +30,9 @@ func (h ChatRoutes) SetPrivteChatRoutes(router *gin.Engine) {
 }
 
 func (h ChatRoutes) SetGroupChatRoutes(router *gin.Engine) {
+	router.Use(h.Middleware.AuthenticateUser)
+	router.GET("ws/group", h.WebSocketHandler.HandleGroupSocketConnection)
 	router.POST("chat/group/start", h.ChatHandler.StartGroupChat)
-	router.POST("chat/group/chatlist", h.ChatHandler.GetGroupChatList)
+	router.POST("chat/get-group", h.ChatHandler.GetGroupChatList)
 	router.POST("chat/group/get-chat", h.ChatHandler.GetGroupChatHistory)
 }

@@ -21,6 +21,7 @@ type WebSocketHandler struct {
 
 type WebSocketMethods interface {
 	HandleSocketConnection(*gin.Context)
+	HandleGroupSocketConnection(c *gin.Context)
 	AddPrivateChatHistory(string, string, string, string, *gin.Context)
 }
 
@@ -32,8 +33,9 @@ func NewWebSocketHandler(privateUsecase usecase.PrivateChatUsecaseMethods, group
 }
 
 var (
-	connectedClients = make(map[string]*websocket.Conn)
-	socketID         string
+	connectedClients      = make(map[string]*websocket.Conn)
+	connectedGroupClients = make(map[string]*websocket.Conn)
+	socketID              string
 )
 
 var upgrader = websocket.Upgrader{
@@ -106,6 +108,28 @@ func (w WebSocketHandler) HandleSocketConnection(c *gin.Context) {
 				w.AddPrivateChatHistory(userName, recipient, "undelivered", wsMessage.Text, c)
 			}
 		}
+	}
+}
+
+func (w WebSocketHandler) HandleGroupSocketConnection(c *gin.Context) {
+	userName := c.DefaultQuery("userName", "")
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		log.Println("socket connection err :", err)
+		return
+	}
+	defer func() {
+		delete(connectedGroupClients, userName)
+		conn.Close()
+	}()
+	if _, ok := connectedGroupClients[userName]; !ok {
+		connectedMessage := []byte("Connected to the server")
+		err = conn.WriteMessage(websocket.TextMessage, connectedMessage)
+		if err != nil {
+			log.Println("Error sending message:", err)
+			return
+		}
+		connectedGroupClients[userName] = conn
 	}
 }
 
