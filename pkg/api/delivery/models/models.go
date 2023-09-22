@@ -26,3 +26,16 @@ type PrivateChatHistory struct {
 type ChatHistoryResponse struct {
 	Messages []PrivateChatHistory `json:"messages"`
 }
+
+// Group
+
+type GroupChat struct {
+	UserID   string `json:"UserID"`
+	GroupID  string `json:"GroupID"`
+	StartAt  time.Time
+	LastSeen time.Time
+}
+
+type GetGroupChat struct {
+	UserID string `json:"UserID"`
+}

@@ -7,12 +7,12 @@ import (
 )
 
 type ChatRoutes struct {
-	ChatHandler      ChatHandler
+	ChatHandler      ChatHandlerMethods
 	WebSocketHandler websocket.WebSocketMethods
 	Middleware       MiddlewareMethods
 }
 
-func NewChatRoutes(handler ChatHandler, wsHandler websocket.WebSocketMethods) ChatRoutes {
+func NewChatRoutes(handler ChatHandlerMethods, wsHandler websocket.WebSocketMethods) ChatRoutes {
 	return ChatRoutes{
 		ChatHandler:      handler,
 		WebSocketHandler: wsHandler,
@@ -31,5 +31,6 @@ func (h ChatRoutes) SetPrivteChatRoutes(router *gin.Engine) {
 }
 
 func (h ChatRoutes) SetGroupChatRoutes(router *gin.Engine) {
-	router.GET("/group/chat", h.ChatHandler.GetGroupChat)
+	router.POST("chat/group/start", h.ChatHandler.StartGroupChat)
+	router.POST("chat/group/chatlist", h.ChatHandler.GetGroupChatList)
 }
