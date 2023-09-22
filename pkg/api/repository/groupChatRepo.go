@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"chat/pkg/api/delivery/models"
 	"chat/pkg/api/domain"
 	"log"
 	"time"
@@ -21,7 +20,8 @@ func NewGroupChatRepo(dbClient *gorm.DB) GroupChatRepoMethods {
 
 type GroupChatRepoMethods interface {
 	CreateGroupChat(domain.GroupChat) error
-	GetGroupList(domain.GroupChat) ([]models.GroupChat, error)
+	GetGroupList(domain.GroupChat) ([]domain.GroupChat, error)
+	GroupChatHistory(domain.GroupChat, time.Time) ([]domain.GroupChatHistory, error)
 }
 
 func (r GroupChatRepo) CreateGroupChat(input domain.GroupChat) error {
@@ -47,10 +47,19 @@ func (r GroupChatRepo) CreateGroupChat(input domain.GroupChat) error {
 	return nil
 }
 
-func (r GroupChatRepo) GetGroupList(input domain.GroupChat) ([]models.GroupChat, error) {
-	var groupList []models.GroupChat
+func (r GroupChatRepo) GetGroupList(input domain.GroupChat) ([]domain.GroupChat, error) {
+	var groupList []domain.GroupChat
 	if err := r.DB.Where("user_id = ?", input.UserID).Find(&groupList).Error; err != nil {
 		return nil, err
 	}
 	return groupList, nil
+}
+
+func (r GroupChatRepo) GroupChatHistory(input domain.GroupChat, dateLimit time.Time) ([]domain.GroupChatHistory, error) {
+	var chatHistory []domain.GroupChatHistory
+	err := r.DB.Where("group_id = ?", input.GroupID).Where("time >= ?", dateLimit).Find(&chatHistory).Error
+	if err != nil {
+		return nil, err
+	}
+	return chatHistory, nil
 }

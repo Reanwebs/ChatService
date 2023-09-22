@@ -33,4 +33,5 @@ func (h ChatRoutes) SetPrivteChatRoutes(router *gin.Engine) {
 func (h ChatRoutes) SetGroupChatRoutes(router *gin.Engine) {
 	router.POST("chat/group/start", h.ChatHandler.StartGroupChat)
 	router.POST("chat/group/chatlist", h.ChatHandler.GetGroupChatList)
+	router.POST("chat/group/get-chat", h.ChatHandler.GetGroupChatHistory)
 }

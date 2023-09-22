@@ -39,3 +39,10 @@ type GroupChat struct {
 type GetGroupChat struct {
 	UserID string `json:"UserID"`
 }
+
+type GroupChatHistory struct {
+	GroupID string `json:"GroupID"`
+	Text    string `json:"Text"`
+	Status  string `json:"Status"`
+	Time    time.Time
+}

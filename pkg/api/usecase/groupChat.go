@@ -22,6 +22,7 @@ func NewGroupChatUsecase(repo repository.GroupChatRepoMethods) GroupChatUsecase 
 type GroupChatUsecaseMethods interface {
 	GroupChatStart(models.GroupChat) error
 	GetGroupList(models.GetGroupChat) ([]models.GroupChat, error)
+	GetGroupChatHistory(models.GroupChat) ([]models.GroupChatHistory, error)
 }
 
 func (u GroupChatUsecase) GroupChatStart(input models.GroupChat) error {
@@ -46,5 +47,37 @@ func (u GroupChatUsecase) GetGroupList(input models.GetGroupChat) ([]models.Grou
 		log.Println(err)
 		return nil, err
 	}
-	return response, nil
+	var convertedResponse []models.GroupChat
+	for _, group := range response {
+		convertedResponse = append(convertedResponse, models.GroupChat{
+			UserID:   group.UserID,
+			GroupID:  group.GroupID,
+			StartAt:  group.StartAt,
+			LastSeen: group.LastSeen,
+		})
+	}
+	return convertedResponse, nil
+}
+
+func (u GroupChatUsecase) GetGroupChatHistory(input models.GroupChat) ([]models.GroupChatHistory, error) {
+	entity := domain.GroupChat{
+		UserID:  input.UserID,
+		GroupID: input.GroupID,
+	}
+	DataLimitDays := time.Now().AddDate(0, 0, -2)
+	response, err := u.GroupChatRepo.GroupChatHistory(entity, DataLimitDays)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	var convertedResponse []models.GroupChatHistory
+	for _, groupChat := range response {
+		convertedResponse = append(convertedResponse, models.GroupChatHistory{
+			GroupID: groupChat.GroupID,
+			Text:    groupChat.Text,
+			Status:  groupChat.Status,
+			Time:    time.Time{},
+		})
+	}
+	return convertedResponse, nil
 }

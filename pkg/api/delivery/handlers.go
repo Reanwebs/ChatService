@@ -35,6 +35,7 @@ type ChatHandlerMethods interface {
 
 	StartGroupChat(c *gin.Context)
 	GetGroupChatList(c *gin.Context)
+	GetGroupChatHistory(c *gin.Context)
 }
 
 func (h ChatHandler) GetPrivateChat(c *gin.Context) {
@@ -129,6 +130,23 @@ func (h ChatHandler) GetGroupChatList(c *gin.Context) {
 	}
 	sort.SliceStable(response, func(i, j int) bool {
 		return response[i].LastSeen.After(response[j].LastSeen)
+	})
+	c.JSON(http.StatusOK, response)
+}
+
+func (h ChatHandler) GetGroupChatHistory(c *gin.Context) {
+	var model models.GroupChat
+	if err = c.ShouldBindJSON(&model); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, errors.Join(errors.New("JSON Binding failed"), err))
+		return
+	}
+	response, err := h.GroupChatUsecase.GetGroupChatHistory(model)
+	if err != nil {
+		log.Println(err, "error retrieving groupchat")
+		c.JSON(http.StatusBadRequest, err)
+	}
+	sort.SliceStable(response, func(i, j int) bool {
+		return response[i].Time.Before(response[j].Time)
 	})
 	c.JSON(http.StatusOK, response)
 }
