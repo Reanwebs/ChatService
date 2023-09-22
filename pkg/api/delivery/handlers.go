@@ -4,7 +4,6 @@ import (
 	"chat/pkg/api/delivery/models"
 	"chat/pkg/api/usecase"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"sort"
@@ -46,6 +45,9 @@ func (h ChatHandler) GetPrivateChat(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err)
 		return
 	}
+	sort.SliceStable(response, func(i, j int) bool {
+		return response[i].LastSeen.After(response[j].LastSeen)
+	})
 	c.Set("userName", input.UserID)
 	c.JSON(http.StatusOK, response)
 }
@@ -73,7 +75,6 @@ func (h ChatHandler) PrivateChatHistory(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, errors.Join(errors.New("JSON Binding failed"), err))
 		return
 	}
-	fmt.Println(input.RecipientID, "recipient for chat history")
 	sendedMessages, err := h.PrivateChatUsecase.RetrivePrivateChatHistory(input.UserID, input.RecipientID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, errors.Join(errors.New("Server error"), err))

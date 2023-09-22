@@ -5,6 +5,7 @@ import (
 	"chat/pkg/api/domain"
 	"fmt"
 	"log"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -23,8 +24,8 @@ type PrivateChatRepoMethods interface {
 	CreatePrivateChat(domain.PrivateChat) error
 	GetChatList(string) ([]models.PrivateChat, error)
 	AddPrivateChatHistory(domain.PrivateChatHistory) error
-	GetPrivateChatHistory(string, string) ([]domain.PrivateChatHistory, error)
-	GetRecievedChatHistory(string, string) ([]domain.PrivateChatHistory, error)
+	GetPrivateChatHistory(string, string, time.Time) ([]domain.PrivateChatHistory, error)
+	GetRecievedChatHistory(string, string, time.Time) ([]domain.PrivateChatHistory, error)
 }
 
 func (r PrivateChatRepo) CreatePrivateChat(input domain.PrivateChat) error {
@@ -37,6 +38,11 @@ func (r PrivateChatRepo) CreatePrivateChat(input domain.PrivateChat) error {
 				return result.Error
 			}
 		} else {
+			log.Println(result.Error)
+			return result.Error
+		}
+	} else {
+		if result := r.DB.Model(&existingRecord).Update("LastSeen", time.Now()); result.Error != nil {
 			log.Println(result.Error)
 			return result.Error
 		}
@@ -63,9 +69,9 @@ func (r PrivateChatRepo) AddPrivateChatHistory(chat domain.PrivateChatHistory) e
 	return nil
 }
 
-func (r PrivateChatRepo) GetPrivateChatHistory(userID string, recipientID string) ([]domain.PrivateChatHistory, error) {
+func (r PrivateChatRepo) GetPrivateChatHistory(userID string, recipientID string, dateLimit time.Time) ([]domain.PrivateChatHistory, error) {
 	var chats []domain.PrivateChatHistory
-	err := r.DB.Where("user_id = ? AND recipient_id = ?", userID, recipientID).
+	err := r.DB.Where("user_id = ? AND recipient_id = ?", userID, recipientID).Where("time >= ?", dateLimit).
 		Find(&chats).Error
 
 	if err != nil {
@@ -75,9 +81,9 @@ func (r PrivateChatRepo) GetPrivateChatHistory(userID string, recipientID string
 	return chats, nil
 }
 
-func (r PrivateChatRepo) GetRecievedChatHistory(userID string, recipientID string) ([]domain.PrivateChatHistory, error) {
+func (r PrivateChatRepo) GetRecievedChatHistory(userID string, recipientID string, dateLimit time.Time) ([]domain.PrivateChatHistory, error) {
 	var chats []domain.PrivateChatHistory
-	err := r.DB.Where("user_id = ? AND recipient_id = ?", recipientID, userID).
+	err := r.DB.Where("user_id = ? AND recipient_id = ?", recipientID, userID).Where("time >= ?", dateLimit).
 		Find(&chats).Error
 
 	if err != nil {

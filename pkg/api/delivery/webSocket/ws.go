@@ -45,10 +45,12 @@ var upgrader = websocket.Upgrader{
 }
 
 type WebSocketMessage struct {
+	Type      string    `json:"type"`
 	Sender    string    `json:"sender"`
 	Recipient string    `json:"recipient"`
 	Text      string    `json:"text"`
 	Time      time.Time `json:"time"`
+	Online    bool      `json:"online"`
 }
 
 func (w WebSocketHandler) HandleSocketConnection(c *gin.Context) {
@@ -58,19 +60,24 @@ func (w WebSocketHandler) HandleSocketConnection(c *gin.Context) {
 		log.Println("socket connection err :", err)
 		return
 	}
-
-	connectedClients[userName] = conn
-
-	connectedMessage := []byte("Connected to the server")
-	err = conn.WriteMessage(websocket.TextMessage, connectedMessage)
-	if err != nil {
-		log.Println("Error sending message:", err)
-		return
+	defer func() {
+		delete(connectedClients, userName)
+		conn.Close()
+	}()
+	if _, ok := connectedClients[userName]; !ok {
+		connectedMessage := []byte("Connected to the server")
+		err = conn.WriteMessage(websocket.TextMessage, connectedMessage)
+		if err != nil {
+			log.Println("Error sending message:", err)
+			return
+		}
+		connectedClients[userName] = conn
 	}
+
 	for {
 		_, p, err := conn.ReadMessage()
 		if err != nil {
-			log.Println(err)
+			log.Println(err, "socket error")
 			return
 		}
 		if len(p) == 0 {
@@ -87,14 +94,43 @@ func (w WebSocketHandler) HandleSocketConnection(c *gin.Context) {
 				if err != nil {
 					log.Println("Error forwarding message to recipient:", err)
 				}
+				if err = sendOnlineStatus(true, userName); err != nil {
+					log.Println("Error forwarding onlineStatus to user:", err)
+				}
 				w.AddPrivateChatHistory(userName, recipient, "delivered", wsMessage.Text, c)
 			} else {
 				log.Println("Recipient is not connected")
-
+				if err = sendOnlineStatus(false, userName); err != nil {
+					log.Println("Error forwarding onlineStatus to user:", err)
+				}
 				w.AddPrivateChatHistory(userName, recipient, "undelivered", wsMessage.Text, c)
 			}
 		}
 	}
+}
+
+func sendOnlineStatus(status bool, user string) error {
+	onlineStatusMessage := WebSocketMessage{
+		Type:      "onlineStatus",
+		Sender:    user,
+		Recipient: "",
+		Text:      "",
+		Time:      time.Time{},
+		Online:    status,
+	}
+	message, err := json.Marshal(onlineStatusMessage)
+	if err != nil {
+		log.Println("Error marshaling online status:", err)
+		return err
+	}
+
+	userConn, _ := connectedClients[user]
+	err = userConn.WriteMessage(websocket.TextMessage, message)
+	if err != nil {
+		log.Println("Error sending online status:", err)
+		return err
+	}
+	return nil
 }
 
 func (w WebSocketHandler) AddPrivateChatHistory(userId string, recipientId string, status string, Text string, c *gin.Context) {
@@ -103,10 +139,8 @@ func (w WebSocketHandler) AddPrivateChatHistory(userId string, recipientId strin
 		Status: status,
 		Time:   time.Now(),
 	}
-
 	if err := w.PrivateChatUsecase.CreatePrivateChatHistory(userId, recipientId, input); err != nil {
 		log.Println(err)
 		fmt.Println(err)
 	}
-
 }

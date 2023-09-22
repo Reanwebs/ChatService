@@ -32,6 +32,7 @@ func (r PrivateChatUsecase) StartChat(input models.PrivateChat) error {
 	entity.UserID = input.UserID
 	entity.RecipientID = input.RecipientID
 	entity.StartAt = time.Now()
+	entity.LastSeen = time.Now()
 
 	if err := r.PrivateChatRepo.CreatePrivateChat(entity); err != nil {
 		return err
@@ -67,7 +68,8 @@ func (r PrivateChatUsecase) CreatePrivateChatHistory(userID string, recipientID 
 
 func (r PrivateChatUsecase) RetrivePrivateChatHistory(userID string, recipientID string) ([]models.PrivateChatHistory, error) {
 	response := []models.PrivateChatHistory{}
-	result, err := r.PrivateChatRepo.GetPrivateChatHistory(userID, recipientID)
+	DataLimitDays := time.Now().AddDate(0, 0, -2)
+	result, err := r.PrivateChatRepo.GetPrivateChatHistory(userID, recipientID, DataLimitDays)
 	if err != nil {
 		log.Println("PrivateChatHistoryRepo", err)
 		return nil, err
@@ -88,7 +90,8 @@ func (r PrivateChatUsecase) RetrivePrivateChatHistory(userID string, recipientID
 
 func (r PrivateChatUsecase) RetriveRecievedChatHistory(userID string, recipientID string) ([]models.PrivateChatHistory, error) {
 	response := []models.PrivateChatHistory{}
-	result, err := r.PrivateChatRepo.GetRecievedChatHistory(userID, recipientID)
+	DataLimitDays := time.Now().AddDate(0, 0, -2)
+	result, err := r.PrivateChatRepo.GetRecievedChatHistory(userID, recipientID, DataLimitDays)
 	if err != nil {
 		log.Println("PrivateChatHistoryRepo", err)
 		return nil, err

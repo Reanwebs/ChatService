@@ -7,6 +7,8 @@ import (
 type PrivateChat struct {
 	UserID      string `json:"UserID"`
 	RecipientID string `json:"RecipientID"`
+	StartAt     time.Time
+	LastSeen    time.Time
 }
 
 type GetChat struct {
