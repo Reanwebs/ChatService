@@ -7,6 +7,8 @@ import (
 	"errors"
 	"log"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type GroupChatUsecase struct {
@@ -22,7 +24,8 @@ func NewGroupChatUsecase(repo repository.GroupChatRepoMethods) GroupChatUsecase 
 type GroupChatUsecaseMethods interface {
 	GroupChatStart(models.GroupChat) error
 	GetGroupList(models.GetGroupChat) ([]models.GroupChat, error)
-	GetGroupChatHistory(models.GroupChat) ([]models.GroupChatHistory, error)
+	AddGroupChatHistory(models.GroupChatHistory) error
+	GetGroupChatHistory(models.GroupChatHistory) ([]models.GroupChatHistory, error)
 }
 
 func (u GroupChatUsecase) GroupChatStart(input models.GroupChat) error {
@@ -59,9 +62,23 @@ func (u GroupChatUsecase) GetGroupList(input models.GetGroupChat) ([]models.Grou
 	return convertedResponse, nil
 }
 
-func (u GroupChatUsecase) GetGroupChatHistory(input models.GroupChat) ([]models.GroupChatHistory, error) {
-	entity := domain.GroupChat{
-		UserID:  input.UserID,
+func (u GroupChatUsecase) AddGroupChatHistory(input models.GroupChatHistory) error {
+	entity := &domain.GroupChatHistory{
+		Model:   gorm.Model{},
+		UserID:  input.GroupID,
+		GroupID: input.GroupID,
+		Text:    input.Text,
+		Status:  input.Status,
+		Time:    time.Time{},
+	}
+	if err := u.GroupChatRepo.AddGroupChatHistory(*entity); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u GroupChatUsecase) GetGroupChatHistory(input models.GroupChatHistory) ([]models.GroupChatHistory, error) {
+	entity := domain.GroupChatHistory{
 		GroupID: input.GroupID,
 	}
 	DataLimitDays := time.Now().AddDate(0, 0, -2)

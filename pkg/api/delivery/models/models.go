@@ -41,6 +41,7 @@ type GetGroupChat struct {
 }
 
 type GroupChatHistory struct {
+	UserID  string `json:"UserID"`
 	GroupID string `json:"GroupID"`
 	Text    string `json:"Text"`
 	Status  string `json:"Status"`

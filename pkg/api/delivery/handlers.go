@@ -100,22 +100,7 @@ func (h ChatHandler) PrivateChatHistory(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-//Group Chat Handlers
-
-func (h ChatHandler) StartGroupChat(c *gin.Context) {
-	var model models.GroupChat
-	if err = c.ShouldBindJSON(&model); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, errors.Join(errors.New("JSON Binding failed"), err))
-		return
-	}
-	if err = h.GroupChatUsecase.GroupChatStart(model); err != nil {
-		log.Println(err, "error starting groupchat")
-		c.JSON(http.StatusBadRequest, err)
-		return
-	}
-	c.JSON(http.StatusOK, "Group chat started")
-}
-
+// Group Chat Handlers
 func (h ChatHandler) GetGroupChatList(c *gin.Context) {
 	var model models.GetGroupChat
 	if err = c.ShouldBindJSON(&model); err != nil {
@@ -134,8 +119,22 @@ func (h ChatHandler) GetGroupChatList(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (h ChatHandler) GetGroupChatHistory(c *gin.Context) {
+func (h ChatHandler) StartGroupChat(c *gin.Context) {
 	var model models.GroupChat
+	if err = c.ShouldBindJSON(&model); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, errors.Join(errors.New("JSON Binding failed"), err))
+		return
+	}
+	if err = h.GroupChatUsecase.GroupChatStart(model); err != nil {
+		log.Println(err, "error starting groupchat")
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+	c.JSON(http.StatusOK, "Group chat started")
+}
+
+func (h ChatHandler) GetGroupChatHistory(c *gin.Context) {
+	var model models.GroupChatHistory
 	if err = c.ShouldBindJSON(&model); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, errors.Join(errors.New("JSON Binding failed"), err))
 		return

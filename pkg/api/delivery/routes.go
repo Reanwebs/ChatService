@@ -32,7 +32,12 @@ func (h ChatRoutes) SetPrivteChatRoutes(router *gin.Engine) {
 func (h ChatRoutes) SetGroupChatRoutes(router *gin.Engine) {
 	router.Use(h.Middleware.AuthenticateUser)
 	router.GET("ws/group", h.WebSocketHandler.HandleGroupSocketConnection)
-	router.POST("chat/group/start", h.ChatHandler.StartGroupChat)
 	router.POST("chat/get-group", h.ChatHandler.GetGroupChatList)
-	router.POST("chat/group/get-chat", h.ChatHandler.GetGroupChatHistory)
+	router.POST("chat/create-group-chat", h.ChatHandler.StartGroupChat)
+	router.POST("chat/get-group-chat", h.ChatHandler.GetGroupChatHistory)
+}
+
+func (h ChatRoutes) SetPublicChatRoutes(router *gin.Engine) {
+	router.Use(h.Middleware.AuthenticateUser)
+	router.GET("ws/public", h.WebSocketHandler.HandlePublicSocketConnection)
 }

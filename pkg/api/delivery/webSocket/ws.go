@@ -22,7 +22,9 @@ type WebSocketHandler struct {
 type WebSocketMethods interface {
 	HandleSocketConnection(*gin.Context)
 	HandleGroupSocketConnection(c *gin.Context)
+	HandlePublicSocketConnection(c *gin.Context)
 	AddPrivateChatHistory(string, string, string, string, *gin.Context)
+	AddGroupChatHistory(string, string, string, *gin.Context)
 }
 
 func NewWebSocketHandler(privateUsecase usecase.PrivateChatUsecaseMethods, groupUsecase usecase.GroupChatUsecaseMethods) WebSocketMethods {
@@ -33,9 +35,10 @@ func NewWebSocketHandler(privateUsecase usecase.PrivateChatUsecaseMethods, group
 }
 
 var (
-	connectedClients      = make(map[string]*websocket.Conn)
-	connectedGroupClients = make(map[string]*websocket.Conn)
-	socketID              string
+	connectedClients       = make(map[string]*websocket.Conn)
+	connectedGroupClients  = make(map[string]map[string]*websocket.Conn)
+	connectedPublicClients = make(map[string]*websocket.Conn)
+	socketID               string
 )
 
 var upgrader = websocket.Upgrader{
@@ -112,6 +115,53 @@ func (w WebSocketHandler) HandleSocketConnection(c *gin.Context) {
 }
 
 func (w WebSocketHandler) HandleGroupSocketConnection(c *gin.Context) {
+	groupName := c.DefaultQuery("groupName", "")
+	userName := c.DefaultQuery("userName", "")
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		log.Println("Socket connection error:", err)
+		return
+	}
+	defer func() {
+		delete(connectedGroupClients[groupName], userName)
+		conn.Close()
+	}()
+
+	connectedGroupClients[groupName][userName] = conn
+
+	if _, ok := connectedGroupClients[groupName][userName]; !ok {
+		connectedMessage := []byte("Connected to the group chat")
+		err = conn.WriteMessage(websocket.TextMessage, connectedMessage)
+		if err != nil {
+			log.Println("Error sending message:", err)
+			return
+		}
+	}
+
+	for {
+		_, p, err := conn.ReadMessage()
+		if err != nil {
+			log.Println("Socket error:", err)
+			return
+		}
+		if len(p) == 0 {
+			log.Println("Empty WebSocket message received")
+			continue
+		}
+
+		for clientName, clientConn := range connectedGroupClients[groupName] {
+			if clientName != userName {
+				err := clientConn.WriteMessage(websocket.TextMessage, p)
+				if err != nil {
+					log.Println("Error forwarding message to group member:", err)
+				}
+			}
+		}
+		w.AddGroupChatHistory(userName, groupName, string(p), c)
+	}
+}
+
+func (w WebSocketHandler) HandlePublicSocketConnection(c *gin.Context) {
 	userName := c.DefaultQuery("userName", "")
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
@@ -119,19 +169,38 @@ func (w WebSocketHandler) HandleGroupSocketConnection(c *gin.Context) {
 		return
 	}
 	defer func() {
-		delete(connectedGroupClients, userName)
+		delete(connectedPublicClients, userName)
 		conn.Close()
 	}()
-	if _, ok := connectedGroupClients[userName]; !ok {
+	if _, ok := connectedPublicClients[userName]; !ok {
 		connectedMessage := []byte("Connected to the server")
 		err = conn.WriteMessage(websocket.TextMessage, connectedMessage)
 		if err != nil {
 			log.Println("Error sending message:", err)
 			return
 		}
-		connectedGroupClients[userName] = conn
+		connectedPublicClients[userName] = conn
+	}
+	for {
+		messageType, p, err := conn.ReadMessage()
+		if err != nil {
+			log.Println("Error reading message:", err)
+			return
+		}
+		message := string(p)
+		for clientName, clientConn := range connectedPublicClients {
+			if clientName != userName {
+				err = clientConn.WriteMessage(messageType, []byte(userName+": "+message))
+				if err != nil {
+					log.Println("Error forwarding message:", err)
+					return
+				}
+			}
+		}
 	}
 }
+
+// Non Ws Functions
 
 func sendOnlineStatus(status bool, user string) error {
 	onlineStatusMessage := WebSocketMessage{
@@ -164,6 +233,20 @@ func (w WebSocketHandler) AddPrivateChatHistory(userId string, recipientId strin
 		Time:   time.Now(),
 	}
 	if err := w.PrivateChatUsecase.CreatePrivateChatHistory(userId, recipientId, input); err != nil {
+		log.Println(err)
+		fmt.Println(err)
+	}
+}
+
+func (w WebSocketHandler) AddGroupChatHistory(userId string, groupId string, Text string, c *gin.Context) {
+	input := models.GroupChatHistory{
+		UserID:  userId,
+		GroupID: groupId,
+		Text:    Text,
+		Status:  "delivered",
+		Time:    time.Time{},
+	}
+	if err := w.GroupChatUsecase.AddGroupChatHistory(input); err != nil {
 		log.Println(err)
 		fmt.Println(err)
 	}

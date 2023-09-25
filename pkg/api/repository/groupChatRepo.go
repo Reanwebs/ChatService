@@ -21,7 +21,8 @@ func NewGroupChatRepo(dbClient *gorm.DB) GroupChatRepoMethods {
 type GroupChatRepoMethods interface {
 	CreateGroupChat(domain.GroupChat) error
 	GetGroupList(domain.GroupChat) ([]domain.GroupChat, error)
-	GroupChatHistory(domain.GroupChat, time.Time) ([]domain.GroupChatHistory, error)
+	AddGroupChatHistory(domain.GroupChatHistory) error
+	GroupChatHistory(domain.GroupChatHistory, time.Time) ([]domain.GroupChatHistory, error)
 }
 
 func (r GroupChatRepo) CreateGroupChat(input domain.GroupChat) error {
@@ -54,8 +55,14 @@ func (r GroupChatRepo) GetGroupList(input domain.GroupChat) ([]domain.GroupChat,
 	}
 	return groupList, nil
 }
+func (r GroupChatRepo) AddGroupChatHistory(chatHistory domain.GroupChatHistory) error {
+	if err := r.DB.Create(&chatHistory).Error; err != nil {
+		return err
+	}
+	return nil
+}
 
-func (r GroupChatRepo) GroupChatHistory(input domain.GroupChat, dateLimit time.Time) ([]domain.GroupChatHistory, error) {
+func (r GroupChatRepo) GroupChatHistory(input domain.GroupChatHistory, dateLimit time.Time) ([]domain.GroupChatHistory, error) {
 	var chatHistory []domain.GroupChatHistory
 	err := r.DB.Where("group_id = ?", input.GroupID).Where("time >= ?", dateLimit).Find(&chatHistory).Error
 	if err != nil {
