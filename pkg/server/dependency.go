@@ -2,6 +2,7 @@ package server
 
 import (
 	"chat/pkg/api/delivery"
+	websocket "chat/pkg/api/delivery/webSocket"
 	"chat/pkg/api/repository"
 	"chat/pkg/api/usecase"
 	"log"
@@ -21,8 +22,8 @@ func InitializeApi(config Config) (*Server, error) {
 	groupUsecase := usecase.NewGroupChatUsecase(groupRepo)
 
 	handler := delivery.NewChatHandler(privateUsecase, groupUsecase)
-
-	routes := delivery.NewChatRoutes(handler)
+	wsHandler := websocket.NewWebSocketHandler(privateUsecase, groupUsecase)
+	routes := delivery.NewChatRoutes(handler, wsHandler)
 
 	server := NewServer(routes, config)
 

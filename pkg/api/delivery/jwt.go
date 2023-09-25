@@ -1,7 +1,6 @@
-package midleware
+package delivery
 
 import (
-	"chat/pkg/server"
 	"errors"
 	"fmt"
 	"net/http"
@@ -11,17 +10,23 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-func ValidateToken(tokenString string) (jwt.StandardClaims, error) {
+type Middleware struct {
+	Methods MiddlewareMethods
+}
+
+type MiddlewareMethods interface {
+	ValidateToken(string) (jwt.StandardClaims, error)
+	AuthenticateUser(*gin.Context)
+	AuthHelper(*gin.Context, string)
+}
+
+func (m Middleware) ValidateToken(tokenString string) (jwt.StandardClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.StandardClaims{},
 		func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
-			cfg, err := server.LoadConfig()
-			if err != nil {
-				return nil, fmt.Errorf("error loading configuration: %w", err)
-			}
-			return []byte(cfg.JwtKey), nil
+			return []byte("P6zqwuYDJomBGnleDYtF3pMyoN3sVaiy2BTbUNd566g"), nil
 		},
 	)
 
@@ -39,11 +44,11 @@ func ValidateToken(tokenString string) (jwt.StandardClaims, error) {
 	return *claims, nil
 }
 
-func AuthenticateUser(ctx *gin.Context) {
-	authHelper(ctx, "user")
+func (m Middleware) AuthenticateUser(ctx *gin.Context) {
+	m.AuthHelper(ctx, "user")
 }
 
-func authHelper(ctx *gin.Context, user string) {
+func (m Middleware) AuthHelper(ctx *gin.Context, user string) {
 
 	tokenString, err := ctx.Cookie(user + "-auth")
 	if err != nil || tokenString == "" {
@@ -54,7 +59,7 @@ func authHelper(ctx *gin.Context, user string) {
 		return
 	}
 
-	claims, err := ValidateToken(tokenString)
+	claims, err := m.ValidateToken(tokenString)
 	if err != nil || tokenString == "" {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"StatusCode": 401,

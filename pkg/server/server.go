@@ -17,6 +17,7 @@ func NewServer(routes delivery.ChatRoutes, config Config) Server {
 	router := gin.Default()
 	routes.SetPrivteChatRoutes(router)
 	routes.SetGroupChatRoutes(router)
+	routes.SetPublicChatRoutes(router)
 
 	return Server{
 		Routes: routes,

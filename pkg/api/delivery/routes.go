@@ -7,22 +7,37 @@ import (
 )
 
 type ChatRoutes struct {
-	ChatHandler ChatHandler
+	ChatHandler      ChatHandlerMethods
+	WebSocketHandler websocket.WebSocketMethods
+	Middleware       MiddlewareMethods
 }
 
-func NewChatRoutes(handler ChatHandler) ChatRoutes {
+func NewChatRoutes(handler ChatHandlerMethods, wsHandler websocket.WebSocketMethods) ChatRoutes {
 	return ChatRoutes{
-		ChatHandler: handler,
+		ChatHandler:      handler,
+		WebSocketHandler: wsHandler,
+		Middleware:       Middleware{},
 	}
 }
 
 func (h ChatRoutes) SetPrivteChatRoutes(router *gin.Engine) {
-	router.GET("ws", websocket.HandleSocketConnection)
-	router.POST("chat/get", h.ChatHandler.GetPrivateChat)
-	router.POST("chat/create", h.ChatHandler.StartPrivateChat)
+	router.Use(h.Middleware.AuthenticateUser)
+	router.GET("ws", h.WebSocketHandler.HandleSocketConnection)
+	router.POST("chat/get-chatlist", h.ChatHandler.GetPrivateChat)
+	router.POST("chat/create-chat", h.ChatHandler.StartPrivateChat)
+	router.POST("chat/get-chat", h.ChatHandler.PrivateChatHistory)
 
 }
 
 func (h ChatRoutes) SetGroupChatRoutes(router *gin.Engine) {
-	router.GET("/group/chat", h.ChatHandler.GetGroupChat)
+	router.Use(h.Middleware.AuthenticateUser)
+	router.GET("ws/group", h.WebSocketHandler.HandleGroupSocketConnection)
+	router.POST("chat/get-group", h.ChatHandler.GetGroupChatList)
+	router.POST("chat/create-group-chat", h.ChatHandler.StartGroupChat)
+	router.POST("chat/get-group-chat", h.ChatHandler.GetGroupChatHistory)
+}
+
+func (h ChatRoutes) SetPublicChatRoutes(router *gin.Engine) {
+	router.Use(h.Middleware.AuthenticateUser)
+	router.GET("ws/public", h.WebSocketHandler.HandlePublicSocketConnection)
 }
