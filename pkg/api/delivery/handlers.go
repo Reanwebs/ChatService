@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	authclient "chat/pkg/api/delivery/authClient"
 	"chat/pkg/api/delivery/models"
 	"chat/pkg/api/usecase"
 	"errors"
@@ -19,12 +20,14 @@ var (
 type ChatHandler struct {
 	PrivateChatUsecase usecase.PrivateChatUsecaseMethods
 	GroupChatUsecase   usecase.GroupChatUsecaseMethods
+	AuthClient         authclient.AutharizationClientMethods
 }
 
-func NewChatHandler(privateUsecase usecase.PrivateChatUsecaseMethods, groupUsecase usecase.GroupChatUsecaseMethods) ChatHandlerMethods {
+func NewChatHandler(authClient authclient.AutharizationClientMethods, privateUsecase usecase.PrivateChatUsecaseMethods, groupUsecase usecase.GroupChatUsecaseMethods) ChatHandlerMethods {
 	return ChatHandler{
 		PrivateChatUsecase: privateUsecase,
 		GroupChatUsecase:   groupUsecase,
+		AuthClient:         authClient,
 	}
 }
 

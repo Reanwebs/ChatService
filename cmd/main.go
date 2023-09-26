@@ -1,6 +1,7 @@
 package main
 
 import (
+	"chat/pkg/client"
 	"chat/pkg/server"
 	"log"
 )
@@ -11,7 +12,12 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	ginServer, err := server.InitializeApi(config)
+	grpcClient, err := client.InitializeClient(config)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	ginServer, err := server.InitializeApi(grpcClient, config)
 	if err != nil {
 		log.Fatalln(err)
 	}
