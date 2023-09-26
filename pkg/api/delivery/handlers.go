@@ -51,7 +51,7 @@ func (h ChatHandler) StartPrivateChat(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, errors.Join(errors.New("JSON Binding failed"), err))
 		return
 	}
-	res, err := h.AuthClient.ValidateUser(c, &client.ValidateUserRequest{
+	res, err := h.AuthClient.GetUserDetails(c, &client.GetUserDetailsRequest{
 		UserID: body.RecipientID,
 	})
 	if err != nil {

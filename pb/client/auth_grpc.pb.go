@@ -20,7 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	Autharization_HealthCheck_FullMethodName     = "/pb.Autharization/HealthCheck"
-	Autharization_ValidateUser_FullMethodName    = "/pb.Autharization/ValidateUser"
+	Autharization_GetUserDetails_FullMethodName  = "/pb.Autharization/GetUserDetails"
 	Autharization_GetOnlineStatus_FullMethodName = "/pb.Autharization/GetOnlineStatus"
 )
 
@@ -29,7 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AutharizationClient interface {
 	HealthCheck(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
-	ValidateUser(ctx context.Context, in *ValidateUserRequest, opts ...grpc.CallOption) (*ValidateUserResponse, error)
+	GetUserDetails(ctx context.Context, in *GetUserDetailsRequest, opts ...grpc.CallOption) (*GetUserDetailsResponse, error)
 	GetOnlineStatus(ctx context.Context, in *GetOnlineStatusRequest, opts ...grpc.CallOption) (*GetOnlineStatusResponse, error)
 }
 
@@ -50,9 +50,9 @@ func (c *autharizationClient) HealthCheck(ctx context.Context, in *Request, opts
 	return out, nil
 }
 
-func (c *autharizationClient) ValidateUser(ctx context.Context, in *ValidateUserRequest, opts ...grpc.CallOption) (*ValidateUserResponse, error) {
-	out := new(ValidateUserResponse)
-	err := c.cc.Invoke(ctx, Autharization_ValidateUser_FullMethodName, in, out, opts...)
+func (c *autharizationClient) GetUserDetails(ctx context.Context, in *GetUserDetailsRequest, opts ...grpc.CallOption) (*GetUserDetailsResponse, error) {
+	out := new(GetUserDetailsResponse)
+	err := c.cc.Invoke(ctx, Autharization_GetUserDetails_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (c *autharizationClient) GetOnlineStatus(ctx context.Context, in *GetOnline
 // for forward compatibility
 type AutharizationServer interface {
 	HealthCheck(context.Context, *Request) (*Response, error)
-	ValidateUser(context.Context, *ValidateUserRequest) (*ValidateUserResponse, error)
+	GetUserDetails(context.Context, *GetUserDetailsRequest) (*GetUserDetailsResponse, error)
 	GetOnlineStatus(context.Context, *GetOnlineStatusRequest) (*GetOnlineStatusResponse, error)
 	mustEmbedUnimplementedAutharizationServer()
 }
@@ -85,8 +85,8 @@ type UnimplementedAutharizationServer struct {
 func (UnimplementedAutharizationServer) HealthCheck(context.Context, *Request) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HealthCheck not implemented")
 }
-func (UnimplementedAutharizationServer) ValidateUser(context.Context, *ValidateUserRequest) (*ValidateUserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ValidateUser not implemented")
+func (UnimplementedAutharizationServer) GetUserDetails(context.Context, *GetUserDetailsRequest) (*GetUserDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserDetails not implemented")
 }
 func (UnimplementedAutharizationServer) GetOnlineStatus(context.Context, *GetOnlineStatusRequest) (*GetOnlineStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOnlineStatus not implemented")
@@ -122,20 +122,20 @@ func _Autharization_HealthCheck_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Autharization_ValidateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ValidateUserRequest)
+func _Autharization_GetUserDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserDetailsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AutharizationServer).ValidateUser(ctx, in)
+		return srv.(AutharizationServer).GetUserDetails(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Autharization_ValidateUser_FullMethodName,
+		FullMethod: Autharization_GetUserDetails_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AutharizationServer).ValidateUser(ctx, req.(*ValidateUserRequest))
+		return srv.(AutharizationServer).GetUserDetails(ctx, req.(*GetUserDetailsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -170,8 +170,8 @@ var Autharization_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Autharization_HealthCheck_Handler,
 		},
 		{
-			MethodName: "ValidateUser",
-			Handler:    _Autharization_ValidateUser_Handler,
+			MethodName: "GetUserDetails",
+			Handler:    _Autharization_GetUserDetails_Handler,
 		},
 		{
 			MethodName: "GetOnlineStatus",

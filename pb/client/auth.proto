@@ -6,7 +6,7 @@ package pb;
 
 service Autharization{
     rpc HealthCheck(Request) returns (Response){}
-    rpc ValidateUser(ValidateUserRequest) returns (ValidateUserResponse){}
+    rpc GetUserDetails(GetUserDetailsRequest) returns (GetUserDetailsResponse){}
     rpc GetOnlineStatus(GetOnlineStatusRequest) returns (GetOnlineStatusResponse){}
 }
 
@@ -18,11 +18,11 @@ message Response{
     string Result = 2;
 }
 
-message ValidateUserRequest{
+message GetUserDetailsRequest{
     string UserID = 1;
 }
 
-message ValidateUserResponse{
+message GetUserDetailsResponse{
     string UserName = 1;
     string AvatarID = 2;
     bool   Permission = 3;

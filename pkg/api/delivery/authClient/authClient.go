@@ -17,7 +17,7 @@ func NewAuthClient(client client.AutharizationClient) AutharizationClientMethods
 
 type AutharizationClientMethods interface {
 	HealthCheck(context.Context, *client.Request) (*client.Response, error)
-	ValidateUser(context.Context, *client.ValidateUserRequest) (*client.ValidateUserResponse, error)
+	GetUserDetails(context.Context, *client.GetUserDetailsRequest) (*client.GetUserDetailsResponse, error)
 	GetOnlineStatus(context.Context, *client.GetOnlineStatusRequest) (*client.GetOnlineStatusResponse, error)
 }
 
@@ -25,7 +25,7 @@ func (c AutharizationClient) GetOnlineStatus(ctx context.Context, req *client.Ge
 	return nil, nil
 }
 
-func (c AutharizationClient) ValidateUser(ctx context.Context, req *client.ValidateUserRequest) (*client.ValidateUserResponse, error) {
+func (c AutharizationClient) GetUserDetails(ctx context.Context, req *client.GetUserDetailsRequest) (*client.GetUserDetailsResponse, error) {
 	return nil, nil
 }
 

@@ -59,24 +59,24 @@ type WebSocketMessage struct {
 }
 
 func (w WebSocketHandler) HandleSocketConnection(c *gin.Context) {
-	userName := c.DefaultQuery("userName", "")
+	userID := c.GetString("userId")
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Println("socket connection err :", err)
 		return
 	}
 	defer func() {
-		delete(connectedClients, userName)
+		delete(connectedClients, userID)
 		conn.Close()
 	}()
-	if _, ok := connectedClients[userName]; !ok {
+	if _, ok := connectedClients[userID]; !ok {
 		connectedMessage := []byte("Connected to the server")
 		err = conn.WriteMessage(websocket.TextMessage, connectedMessage)
 		if err != nil {
 			log.Println("Error sending message:", err)
 			return
 		}
-		connectedClients[userName] = conn
+		connectedClients[userID] = conn
 	}
 
 	for {
@@ -99,16 +99,16 @@ func (w WebSocketHandler) HandleSocketConnection(c *gin.Context) {
 				if err != nil {
 					log.Println("Error forwarding message to recipient:", err)
 				}
-				if err = sendOnlineStatus(true, userName); err != nil {
+				if err = sendOnlineStatus(true, userID); err != nil {
 					log.Println("Error forwarding onlineStatus to user:", err)
 				}
-				w.AddPrivateChatHistory(userName, recipient, "delivered", wsMessage.Text, c)
+				w.AddPrivateChatHistory(userID, recipient, "delivered", wsMessage.Text, c)
 			} else {
 				log.Println("Recipient is not connected")
-				if err = sendOnlineStatus(false, userName); err != nil {
+				if err = sendOnlineStatus(false, userID); err != nil {
 					log.Println("Error forwarding onlineStatus to user:", err)
 				}
-				w.AddPrivateChatHistory(userName, recipient, "undelivered", wsMessage.Text, c)
+				w.AddPrivateChatHistory(userID, recipient, "undelivered", wsMessage.Text, c)
 			}
 		}
 	}
