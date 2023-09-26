@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+option go_package = "/pb/client";
+
+package pb;
+
+service Autharization{
+    rpc HealthCheck(Request) returns (Response){}
+    rpc ValidateUser(ValidateUserRequest) returns (ValidateUserResponse){}
+    rpc GetOnlineStatus(GetOnlineStatusRequest) returns (GetOnlineStatusResponse){}
+}
+
+message Request{
+    string Data = 1;
+}
+
+message Response{
+    string Result = 2;
+}
+
+message ValidateUserRequest{
+    string UserID = 1;
+}
+
+message ValidateUserResponse{
+    string UserName = 1;
+    string AvatarID = 2;
+    bool   Permission = 3;
+    string Result     = 4;
+}
+
+message GetOnlineStatusRequest{
+    string UserID = 1;
+}
+
+message GetOnlineStatusResponse{
+    bool Status = 1;
+    string Result = 2;
+}
