@@ -8,10 +8,12 @@ import (
 
 type PrivateChat struct {
 	gorm.Model
-	UserID      string
-	RecipientID string
-	StartAt     time.Time
-	LastSeen    time.Time
+	UserID            string
+	RecipientID       string
+	RecipientName     string
+	RecipientAvatarID string
+	StartAt           time.Time
+	LastSeen          time.Time
 }
 
 type PrivateChatHistory struct {

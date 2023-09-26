@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"chat/pb/client"
 	authclient "chat/pkg/api/delivery/authClient"
 	"chat/pkg/api/delivery/models"
 	"chat/pkg/api/usecase"
@@ -8,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"sort"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,8 +34,8 @@ func NewChatHandler(authClient authclient.AutharizationClientMethods, privateUse
 }
 
 type ChatHandlerMethods interface {
-	GetPrivateChat(c *gin.Context)
 	StartPrivateChat(c *gin.Context)
+	GetPrivateChat(c *gin.Context)
 	PrivateChatHistory(c *gin.Context)
 
 	StartGroupChat(c *gin.Context)
@@ -41,11 +43,43 @@ type ChatHandlerMethods interface {
 	GetGroupChatHistory(c *gin.Context)
 }
 
-func (h ChatHandler) GetPrivateChat(c *gin.Context) {
-	input := models.GetChat{}
-	if err = c.ShouldBindJSON(&input); err != nil {
+func (h ChatHandler) StartPrivateChat(c *gin.Context) {
+	userID := c.GetString("userId")
+	body := models.StartChat{}
+	if err = c.ShouldBindJSON(&body); err != nil {
 		log.Println(err)
 		c.JSON(http.StatusUnprocessableEntity, errors.Join(errors.New("JSON Binding failed"), err))
+		return
+	}
+	res, err := h.AuthClient.ValidateUser(c, &client.ValidateUserRequest{
+		UserID: body.RecipientID,
+	})
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, errors.Join(errors.New("Auth client error"), err))
+	}
+	if res.Permission != true {
+		c.JSON(http.StatusBadRequest, errors.Join(errors.New("User permission denied"), err))
+	}
+	input := models.PrivateChat{
+		UserID:            userID,
+		RecipientID:       body.RecipientID,
+		RecipientName:     res.UserName,
+		RecipientAvatarID: res.AvatarID,
+		StartAt:           time.Time{},
+		LastSeen:          time.Time{},
+	}
+	if err = h.PrivateChatUsecase.StartChat(input); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+	c.JSON(http.StatusCreated, "Private chat started")
+}
+
+func (h ChatHandler) GetPrivateChat(c *gin.Context) {
+	input := models.GetChat{
+		UserID: c.GetString("userId"),
 	}
 	response, err := h.PrivateChatUsecase.PrivateChatList(input)
 	if err != nil {
@@ -56,39 +90,23 @@ func (h ChatHandler) GetPrivateChat(c *gin.Context) {
 	sort.SliceStable(response, func(i, j int) bool {
 		return response[i].LastSeen.After(response[j].LastSeen)
 	})
-	c.Set("userName", input.UserID)
 	c.JSON(http.StatusOK, response)
 }
 
-func (h ChatHandler) StartPrivateChat(c *gin.Context) {
-	input := models.PrivateChat{}
-	if err = c.ShouldBindJSON(&input); err != nil {
-		log.Println(err)
-		c.JSON(http.StatusUnprocessableEntity, errors.Join(errors.New("JSON Binding failed"), err))
-		return
-	}
-	if err = h.PrivateChatUsecase.StartChat(input); err != nil {
-		log.Println(err)
-		c.JSON(http.StatusBadRequest, err)
-		return
-	}
-	c.JSON(http.StatusCreated, "Private chat started")
-}
-
 func (h ChatHandler) PrivateChatHistory(c *gin.Context) {
-	input := models.PrivateChat{}
-
+	userID := c.GetString("userId")
+	input := models.ChatHistory{}
 	if err = c.ShouldBindJSON(&input); err != nil {
 		log.Println(err)
 		c.JSON(http.StatusUnprocessableEntity, errors.Join(errors.New("JSON Binding failed"), err))
 		return
 	}
-	sendedMessages, err := h.PrivateChatUsecase.RetrivePrivateChatHistory(input.UserID, input.RecipientID)
+	sendedMessages, err := h.PrivateChatUsecase.RetrivePrivateChatHistory(userID, input.RecipientID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, errors.Join(errors.New("Server error"), err))
 		return
 	}
-	recievedMessages, err := h.PrivateChatUsecase.RetriveRecievedChatHistory(input.UserID, input.RecipientID)
+	recievedMessages, err := h.PrivateChatUsecase.RetriveRecievedChatHistory(userID, input.RecipientID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, errors.Join(errors.New("Server error"), err))
 		return

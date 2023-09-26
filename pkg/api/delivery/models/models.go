@@ -4,15 +4,23 @@ import (
 	"time"
 )
 
-type PrivateChat struct {
-	UserID      string `json:"UserID"`
+type StartChat struct {
 	RecipientID string `json:"RecipientID"`
-	StartAt     time.Time
-	LastSeen    time.Time
 }
-
 type GetChat struct {
 	UserID string `json:"UserID"`
+}
+
+type ChatHistory struct {
+	RecipientID string `json:"RecipientID"`
+}
+type PrivateChat struct {
+	UserID            string `json:"UserID"`
+	RecipientID       string `json:"RecipientID"`
+	RecipientName     string `json:"RecipientName"`
+	RecipientAvatarID string `json:"AvatarID"`
+	StartAt           time.Time
+	LastSeen          time.Time
 }
 
 type PrivateChatHistory struct {

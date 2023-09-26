@@ -6,6 +6,8 @@ import (
 	"chat/pkg/api/repository"
 	"log"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type PrivateChatUsecase struct {
@@ -27,17 +29,18 @@ type PrivateChatUsecaseMethods interface {
 }
 
 func (r PrivateChatUsecase) StartChat(input models.PrivateChat) error {
-	entity := domain.PrivateChat{}
-
-	entity.UserID = input.UserID
-	entity.RecipientID = input.RecipientID
-	entity.StartAt = time.Now()
-	entity.LastSeen = time.Now()
-
+	entity := domain.PrivateChat{
+		Model:             gorm.Model{},
+		UserID:            input.UserID,
+		RecipientID:       input.RecipientID,
+		RecipientName:     input.RecipientName,
+		RecipientAvatarID: input.RecipientAvatarID,
+		StartAt:           time.Now(),
+		LastSeen:          time.Now(),
+	}
 	if err := r.PrivateChatRepo.CreatePrivateChat(entity); err != nil {
 		return err
 	}
-
 	return nil
 }
 
