@@ -40,7 +40,7 @@ func (r GroupChatRepo) CreateGroupChat(input domain.GroupChat) error {
 		return result.Error
 	}
 
-	if result := r.DB.Model(&groupChat).Update("LastSeen", time.Now()); result.Error != nil {
+	if result := r.DB.Model(&groupChat).Updates(map[string]interface{}{"LastSeen": time.Now(), "group_avatar_id": input.GroupAvatarID}); result.Error != nil {
 		log.Println(result.Error)
 		return result.Error
 	}

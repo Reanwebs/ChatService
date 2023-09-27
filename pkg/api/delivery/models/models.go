@@ -5,6 +5,7 @@ import (
 )
 
 type StartChat struct {
+	UserName    string `json:"UserName"`
 	RecipientID string `json:"RecipientID"`
 }
 type GetChat struct {
@@ -16,14 +17,17 @@ type ChatHistory struct {
 }
 type PrivateChat struct {
 	UserID            string `json:"UserID"`
+	UserName          string `json:"UserName"`
 	RecipientID       string `json:"RecipientID"`
 	RecipientName     string `json:"RecipientName"`
 	RecipientAvatarID string `json:"AvatarID"`
+	NewRecipient      bool   `json:"-"`
 	StartAt           time.Time
 	LastSeen          time.Time
 }
 
 type PrivateChatHistory struct {
+	UserName    string `json:"UserName"`
 	UserID      string `json:"UserID"`
 	RecipientID string `json:"RecipientID"`
 	Text        string `json:"Text"`
@@ -38,10 +42,13 @@ type ChatHistoryResponse struct {
 // Group
 
 type GroupChat struct {
-	UserID   string `json:"UserID"`
-	GroupID  string `json:"GroupID"`
-	StartAt  time.Time
-	LastSeen time.Time
+	UserID        string `json:"UserID"`
+	UserName      string `jaon:"UserName"`
+	GroupID       string `json:"GroupID"`
+	GroupName     string `json:"GroupName"`
+	GroupAvatarID string `json:"AvaterID"`
+	StartAt       time.Time
+	LastSeen      time.Time
 }
 
 type GetGroupChat struct {
@@ -49,9 +56,11 @@ type GetGroupChat struct {
 }
 
 type GroupChatHistory struct {
-	UserID  string `json:"UserID"`
-	GroupID string `json:"GroupID"`
-	Text    string `json:"Text"`
-	Status  string `json:"Status"`
-	Time    time.Time
+	UserID    string `json:"UserID"`
+	UserName  string `jaon:"UserName"`
+	GroupID   string `json:"GroupID"`
+	GroupName string `json:"GroupName"`
+	Text      string `json:"Text"`
+	Status    string `json:"Status"`
+	Time      time.Time
 }
