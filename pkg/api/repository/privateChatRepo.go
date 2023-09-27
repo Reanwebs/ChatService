@@ -22,7 +22,7 @@ func NewPrivateChatRepo(dbClient *gorm.DB) PrivateChatRepoMethods {
 
 type PrivateChatRepoMethods interface {
 	CreatePrivateChat(domain.PrivateChat) error
-	GetChatList(string) ([]models.PrivateChat, error)
+	GetChatList(string) ([]models.PrivateChat, []models.PrivateChat, error)
 	AddPrivateChatHistory(domain.PrivateChatHistory) error
 	GetPrivateChatHistory(string, string, time.Time) ([]domain.PrivateChatHistory, error)
 	GetRecievedChatHistory(string, string, time.Time) ([]domain.PrivateChatHistory, error)
@@ -42,21 +42,29 @@ func (r PrivateChatRepo) CreatePrivateChat(input domain.PrivateChat) error {
 			return result.Error
 		}
 	} else {
-		if result := r.DB.Model(&existingRecord).Update("LastSeen", time.Now()); result.Error != nil {
+		if result := r.DB.Model(&existingRecord).Updates(map[string]interface{}{"LastSeen": time.Now(), "recipient_avatar_id": input.RecipientAvatarID}); result.Error != nil {
 			log.Println(result.Error)
 			return result.Error
 		}
 	}
-
 	return nil
 }
 
-func (r PrivateChatRepo) GetChatList(userID string) ([]models.PrivateChat, error) {
-	var chatList []models.PrivateChat
-	if err := r.DB.Where("user_id = ?", userID).Find(&chatList).Error; err != nil {
-		return nil, err
+func (r PrivateChatRepo) GetChatList(userID string) ([]models.PrivateChat, []models.PrivateChat, error) {
+	var existingChatList []models.PrivateChat
+	var newChatList []models.PrivateChat
+	if err := r.DB.Where("user_id = ?", userID).Find(&existingChatList).Error; err != nil {
+		return nil, nil, err
 	}
-	return chatList, nil
+	if err := r.DB.Where("recipient_id = ? AND new_recipient = ?", userID, true).Find(&newChatList).Error; err != nil {
+		return nil, nil, err
+	}
+	if result := r.DB.Model(&models.PrivateChat{}).Where("recipient_id = ? AND new_recipient = ?", userID, true).
+		Updates(map[string]interface{}{"new_recipient": false}); result.Error != nil {
+		return nil, nil, result.Error
+	}
+
+	return existingChatList, newChatList, nil
 }
 
 func (r PrivateChatRepo) AddPrivateChatHistory(chat domain.PrivateChatHistory) error {
@@ -71,9 +79,7 @@ func (r PrivateChatRepo) AddPrivateChatHistory(chat domain.PrivateChatHistory) e
 
 func (r PrivateChatRepo) GetPrivateChatHistory(userID string, recipientID string, dateLimit time.Time) ([]domain.PrivateChatHistory, error) {
 	var chats []domain.PrivateChatHistory
-	err := r.DB.Where("user_id = ? AND recipient_id = ?", userID, recipientID).Where("time >= ?", dateLimit).
-		Find(&chats).Error
-
+	err := r.DB.Where("user_id = ? AND recipient_id = ?", userID, recipientID).Where("time >= ?", dateLimit).Find(&chats).Error
 	if err != nil {
 		return nil, err
 	}

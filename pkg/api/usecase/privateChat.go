@@ -23,7 +23,7 @@ func NewPrivateChatUsecase(repo repository.PrivateChatRepoMethods) PrivateChatUs
 type PrivateChatUsecaseMethods interface {
 	StartChat(models.PrivateChat) error
 	PrivateChatList(models.GetChat) ([]models.PrivateChat, error)
-	CreatePrivateChatHistory(string, string, models.PrivateChatHistory) error
+	CreatePrivateChatHistory(models.PrivateChatHistory) error
 	RetrivePrivateChatHistory(string, string) ([]models.PrivateChatHistory, error)
 	RetriveRecievedChatHistory(string, string) ([]models.PrivateChatHistory, error)
 }
@@ -32,9 +32,11 @@ func (r PrivateChatUsecase) StartChat(input models.PrivateChat) error {
 	entity := domain.PrivateChat{
 		Model:             gorm.Model{},
 		UserID:            input.UserID,
+		UserName:          input.UserName,
 		RecipientID:       input.RecipientID,
 		RecipientName:     input.RecipientName,
 		RecipientAvatarID: input.RecipientAvatarID,
+		NewRecipient:      true,
 		StartAt:           time.Now(),
 		LastSeen:          time.Now(),
 	}
@@ -45,19 +47,26 @@ func (r PrivateChatUsecase) StartChat(input models.PrivateChat) error {
 }
 
 func (r PrivateChatUsecase) PrivateChatList(input models.GetChat) ([]models.PrivateChat, error) {
-	response := []models.PrivateChat{}
-	response, err := r.PrivateChatRepo.GetChatList(input.UserID)
+	existingChatList, newChatList, err := r.PrivateChatRepo.GetChatList(input.UserID)
 	if err != nil {
 		return nil, err
 	}
-
-	return response, nil
+	for i := range newChatList {
+		if newChatList[i].RecipientID == input.UserID {
+			newChatList[i].RecipientAvatarID = ""
+			newChatList[i].UserID, newChatList[i].RecipientID = newChatList[i].RecipientID, newChatList[i].UserID
+			newChatList[i].UserName, newChatList[i].RecipientName = newChatList[i].RecipientName, newChatList[i].UserName
+		}
+	}
+	combinedChatList := append(existingChatList, newChatList...)
+	return combinedChatList, nil
 }
 
-func (r PrivateChatUsecase) CreatePrivateChatHistory(userID string, recipientID string, chat models.PrivateChatHistory) error {
+func (r PrivateChatUsecase) CreatePrivateChatHistory(chat models.PrivateChatHistory) error {
 	input := domain.PrivateChatHistory{
-		UserID:      userID,
-		RecipientID: recipientID,
+		UserName:    chat.UserName,
+		UserID:      chat.UserID,
+		RecipientID: chat.RecipientID,
 		Text:        chat.Text,
 		Status:      chat.Status,
 		Time:        time.Now(),
@@ -80,6 +89,7 @@ func (r PrivateChatUsecase) RetrivePrivateChatHistory(userID string, recipientID
 
 	for _, chat := range result {
 		response = append(response, models.PrivateChatHistory{
+			UserName:    chat.UserName,
 			UserID:      chat.UserID,
 			RecipientID: chat.RecipientID,
 			Text:        chat.Text,
@@ -102,6 +112,7 @@ func (r PrivateChatUsecase) RetriveRecievedChatHistory(userID string, recipientI
 
 	for _, chat := range result {
 		response = append(response, models.PrivateChatHistory{
+			UserName:    chat.UserName,
 			UserID:      chat.UserID,
 			RecipientID: chat.RecipientID,
 			Text:        chat.Text,

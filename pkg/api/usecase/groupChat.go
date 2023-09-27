@@ -7,8 +7,6 @@ import (
 	"errors"
 	"log"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type GroupChatUsecase struct {
@@ -30,10 +28,13 @@ type GroupChatUsecaseMethods interface {
 
 func (u GroupChatUsecase) GroupChatStart(input models.GroupChat) error {
 	entity := domain.GroupChat{
-		UserID:   input.UserID,
-		GroupID:  input.GroupID,
-		StartAt:  time.Now(),
-		LastSeen: time.Time{},
+		UserID:        input.UserID,
+		UserName:      input.UserName,
+		GroupID:       input.GroupID,
+		GroupName:     input.GroupName,
+		GroupAvatarID: input.GroupAvatarID,
+		StartAt:       time.Now(),
+		LastSeen:      time.Time{},
 	}
 	if err := u.GroupChatRepo.CreateGroupChat(entity); err != nil {
 		return errors.Join(err, errors.New("error in starting chat"))
@@ -63,15 +64,16 @@ func (u GroupChatUsecase) GetGroupList(input models.GetGroupChat) ([]models.Grou
 }
 
 func (u GroupChatUsecase) AddGroupChatHistory(input models.GroupChatHistory) error {
-	entity := &domain.GroupChatHistory{
-		Model:   gorm.Model{},
-		UserID:  input.GroupID,
-		GroupID: input.GroupID,
-		Text:    input.Text,
-		Status:  input.Status,
-		Time:    time.Time{},
+	entity := domain.GroupChatHistory{
+		UserID:    input.GroupID,
+		UserName:  input.UserName,
+		GroupID:   input.GroupID,
+		GroupName: input.GroupName,
+		Text:      input.Text,
+		Status:    input.Status,
+		Time:      time.Now(),
 	}
-	if err := u.GroupChatRepo.AddGroupChatHistory(*entity); err != nil {
+	if err := u.GroupChatRepo.AddGroupChatHistory(entity); err != nil {
 		return err
 	}
 	return nil

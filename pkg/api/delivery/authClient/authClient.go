@@ -26,7 +26,14 @@ func (c AutharizationClient) GetOnlineStatus(ctx context.Context, req *client.Ge
 }
 
 func (c AutharizationClient) GetUserDetails(ctx context.Context, req *client.GetUserDetailsRequest) (*client.GetUserDetailsResponse, error) {
-	return nil, nil
+
+	res, err := c.Client.GetUserDetails(ctx, &client.GetUserDetailsRequest{
+		UserID: req.UserID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (c AutharizationClient) HealthCheck(ctx context.Context, req *client.Request) (*client.Response, error) {

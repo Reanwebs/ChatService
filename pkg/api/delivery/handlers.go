@@ -6,6 +6,7 @@ import (
 	"chat/pkg/api/delivery/models"
 	"chat/pkg/api/usecase"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"sort"
@@ -63,6 +64,7 @@ func (h ChatHandler) StartPrivateChat(c *gin.Context) {
 	}
 	input := models.PrivateChat{
 		UserID:            userID,
+		UserName:          body.UserName,
 		RecipientID:       body.RecipientID,
 		RecipientName:     res.UserName,
 		RecipientAvatarID: res.AvatarID,
@@ -111,6 +113,7 @@ func (h ChatHandler) PrivateChatHistory(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errors.Join(errors.New("Server error"), err))
 		return
 	}
+	fmt.Println(sendedMessages)
 	allMessages := append(sendedMessages, recievedMessages...)
 	sort.SliceStable(allMessages, func(i, j int) bool {
 		return allMessages[i].Time.Before(allMessages[j].Time)
@@ -160,6 +163,7 @@ func (h ChatHandler) GetGroupChatHistory(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, errors.Join(errors.New("JSON Binding failed"), err))
 		return
 	}
+	fmt.Println(model)
 	response, err := h.GroupChatUsecase.GetGroupChatHistory(model)
 	if err != nil {
 		log.Println(err, "error retrieving groupchat")
