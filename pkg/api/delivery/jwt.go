@@ -49,7 +49,6 @@ func (m Middleware) AuthenticateUser(ctx *gin.Context) {
 }
 
 func (m Middleware) AuthHelper(ctx *gin.Context, user string) {
-
 	tokenString, err := ctx.Cookie(user + "-auth")
 	if err != nil || tokenString == "" {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{

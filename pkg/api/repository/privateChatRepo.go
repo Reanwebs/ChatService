@@ -42,7 +42,16 @@ func (r PrivateChatRepo) CreatePrivateChat(input domain.PrivateChat) error {
 			return result.Error
 		}
 	} else {
-		if result := r.DB.Model(&existingRecord).Updates(map[string]interface{}{"LastSeen": time.Now(), "recipient_avatar_id": input.RecipientAvatarID}); result.Error != nil {
+		updateData := domain.PrivateChat{
+			UserID:            input.UserID,
+			UserName:          input.UserName,
+			RecipientID:       input.RecipientID,
+			RecipientName:     input.RecipientName,
+			RecipientAvatarID: input.RecipientAvatarID,
+			NewRecipient:      input.NewRecipient,
+			LastSeen:          time.Now(),
+		}
+		if result := r.DB.Model(&existingRecord).Updates(updateData); result.Error != nil {
 			log.Println(result.Error)
 			return result.Error
 		}

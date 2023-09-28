@@ -39,6 +39,16 @@ type ChatHistoryResponse struct {
 	Messages []PrivateChatHistory `json:"messages"`
 }
 
+type WebSocketMessage struct {
+	User      string    `json:"user"`
+	Type      string    `json:"type"`
+	Sender    string    `json:"sender"`
+	Recipient string    `json:"recipient"`
+	Text      string    `json:"text"`
+	Time      time.Time `json:"time"`
+	Online    bool      `json:"online"`
+}
+
 // Group
 
 type GroupChat struct {
@@ -63,4 +73,15 @@ type GroupChatHistory struct {
 	Text      string `json:"Text"`
 	Status    string `json:"Status"`
 	Time      time.Time
+}
+
+type WebSocketGroupMessage struct {
+	Text       string `json:"text"`
+	SenderName string `json:"sender"`
+	GroupName  string `json:"recipient"`
+}
+
+type WebSocketPublicMessage struct {
+	User string `json:"user"`
+	Text string `json:"text"`
 }

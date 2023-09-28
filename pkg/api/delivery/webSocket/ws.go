@@ -24,7 +24,7 @@ type WebSocketMethods interface {
 	HandleGroupSocketConnection(c *gin.Context)
 	HandlePublicSocketConnection(c *gin.Context)
 	AddPrivateChatHistory(string, string, string, string, string, *gin.Context)
-	AddGroupChatHistory(string, string, WebSocketGroupMessage, *gin.Context)
+	AddGroupChatHistory(string, string, models.WebSocketGroupMessage, *gin.Context)
 }
 
 func NewWebSocketHandler(privateUsecase usecase.PrivateChatUsecaseMethods, groupUsecase usecase.GroupChatUsecaseMethods) WebSocketMethods {
@@ -47,22 +47,6 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
-}
-
-type WebSocketMessage struct {
-	User      string    `json:"user"`
-	Type      string    `json:"type"`
-	Sender    string    `json:"sender"`
-	Recipient string    `json:"recipient"`
-	Text      string    `json:"text"`
-	Time      time.Time `json:"time"`
-	Online    bool      `json:"online"`
-}
-
-type WebSocketGroupMessage struct {
-	Text       string `json:"text"`
-	SenderName string `json:"sender"`
-	GroupName  string `json:"recipient"`
 }
 
 func (w WebSocketHandler) HandleSocketConnection(c *gin.Context) {
@@ -96,7 +80,7 @@ func (w WebSocketHandler) HandleSocketConnection(c *gin.Context) {
 			log.Println("Empty WebSocket message received")
 			continue
 		}
-		var wsMessage WebSocketMessage
+		var wsMessage models.WebSocketMessage
 		if err := json.Unmarshal(p, &wsMessage); err != nil {
 			log.Println("Error decoding WebSocket message:", err)
 		} else {
@@ -167,7 +151,7 @@ func (w WebSocketHandler) HandleGroupSocketConnection(c *gin.Context) {
 				}
 			}
 		}
-		var wsMessage WebSocketGroupMessage
+		var wsMessage models.WebSocketGroupMessage
 		if err := json.Unmarshal(p, &wsMessage); err != nil {
 			log.Println("Error decoding WebSocket message:", err)
 		}
@@ -177,24 +161,24 @@ func (w WebSocketHandler) HandleGroupSocketConnection(c *gin.Context) {
 }
 
 func (w WebSocketHandler) HandlePublicSocketConnection(c *gin.Context) {
-	userName := c.DefaultQuery("userName", "")
+	userId := c.GetString("userId")
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Println("socket connection err :", err)
 		return
 	}
 	defer func() {
-		delete(connectedPublicClients, userName)
+		delete(connectedPublicClients, userId)
 		conn.Close()
 	}()
-	if _, ok := connectedPublicClients[userName]; !ok {
+	if _, ok := connectedPublicClients[userId]; !ok {
 		connectedMessage := []byte("Connected to the server")
 		err = conn.WriteMessage(websocket.TextMessage, connectedMessage)
 		if err != nil {
 			log.Println("Error sending message:", err)
 			return
 		}
-		connectedPublicClients[userName] = conn
+		connectedPublicClients[userId] = conn
 	}
 	for {
 		messageType, p, err := conn.ReadMessage()
@@ -202,10 +186,10 @@ func (w WebSocketHandler) HandlePublicSocketConnection(c *gin.Context) {
 			log.Println("Error reading message:", err)
 			return
 		}
-		message := string(p)
+		fmt.Println(p)
 		for clientName, clientConn := range connectedPublicClients {
-			if clientName != userName {
-				err = clientConn.WriteMessage(messageType, []byte(userName+": "+message))
+			if clientName != userId {
+				err = clientConn.WriteMessage(messageType, p)
 				if err != nil {
 					log.Println("Error forwarding message:", err)
 					return
@@ -218,7 +202,7 @@ func (w WebSocketHandler) HandlePublicSocketConnection(c *gin.Context) {
 // Non Ws Functions
 
 func sendOnlineStatus(status bool, user string) error {
-	onlineStatusMessage := WebSocketMessage{
+	onlineStatusMessage := models.WebSocketMessage{
 		Type:      "onlineStatus",
 		Sender:    user,
 		Recipient: "",
@@ -256,7 +240,7 @@ func (w WebSocketHandler) AddPrivateChatHistory(userName string, userId string, 
 	}
 }
 
-func (w WebSocketHandler) AddGroupChatHistory(userId string, groupId string, message WebSocketGroupMessage, c *gin.Context) {
+func (w WebSocketHandler) AddGroupChatHistory(userId string, groupId string, message models.WebSocketGroupMessage, c *gin.Context) {
 	input := models.GroupChatHistory{
 		UserID:    userId,
 		UserName:  message.SenderName,

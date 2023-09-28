@@ -113,7 +113,6 @@ func (h ChatHandler) PrivateChatHistory(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errors.Join(errors.New("Server error"), err))
 		return
 	}
-	fmt.Println(sendedMessages)
 	allMessages := append(sendedMessages, recievedMessages...)
 	sort.SliceStable(allMessages, func(i, j int) bool {
 		return allMessages[i].Time.Before(allMessages[j].Time)
