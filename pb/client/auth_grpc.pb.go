@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Autharization_HealthCheck_FullMethodName     = "/pb.Autharization/HealthCheck"
-	Autharization_GetUserDetails_FullMethodName  = "/pb.Autharization/GetUserDetails"
-	Autharization_GetOnlineStatus_FullMethodName = "/pb.Autharization/GetOnlineStatus"
+	Autharization_HealthCheck_FullMethodName         = "/pb.Autharization/HealthCheck"
+	Autharization_GetUserDetails_FullMethodName      = "/pb.Autharization/GetUserDetails"
+	Autharization_GetOnlineStatus_FullMethodName     = "/pb.Autharization/GetOnlineStatus"
+	Autharization_UserGroupPermission_FullMethodName = "/pb.Autharization/UserGroupPermission"
 )
 
 // AutharizationClient is the client API for Autharization service.
@@ -31,6 +32,7 @@ type AutharizationClient interface {
 	HealthCheck(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
 	GetUserDetails(ctx context.Context, in *GetUserDetailsRequest, opts ...grpc.CallOption) (*GetUserDetailsResponse, error)
 	GetOnlineStatus(ctx context.Context, in *GetOnlineStatusRequest, opts ...grpc.CallOption) (*GetOnlineStatusResponse, error)
+	UserGroupPermission(ctx context.Context, in *UserGroupPermissionRequest, opts ...grpc.CallOption) (*UserGroupPermissionResponse, error)
 }
 
 type autharizationClient struct {
@@ -68,6 +70,15 @@ func (c *autharizationClient) GetOnlineStatus(ctx context.Context, in *GetOnline
 	return out, nil
 }
 
+func (c *autharizationClient) UserGroupPermission(ctx context.Context, in *UserGroupPermissionRequest, opts ...grpc.CallOption) (*UserGroupPermissionResponse, error) {
+	out := new(UserGroupPermissionResponse)
+	err := c.cc.Invoke(ctx, Autharization_UserGroupPermission_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AutharizationServer is the server API for Autharization service.
 // All implementations must embed UnimplementedAutharizationServer
 // for forward compatibility
@@ -75,6 +86,7 @@ type AutharizationServer interface {
 	HealthCheck(context.Context, *Request) (*Response, error)
 	GetUserDetails(context.Context, *GetUserDetailsRequest) (*GetUserDetailsResponse, error)
 	GetOnlineStatus(context.Context, *GetOnlineStatusRequest) (*GetOnlineStatusResponse, error)
+	UserGroupPermission(context.Context, *UserGroupPermissionRequest) (*UserGroupPermissionResponse, error)
 	mustEmbedUnimplementedAutharizationServer()
 }
 
@@ -90,6 +102,9 @@ func (UnimplementedAutharizationServer) GetUserDetails(context.Context, *GetUser
 }
 func (UnimplementedAutharizationServer) GetOnlineStatus(context.Context, *GetOnlineStatusRequest) (*GetOnlineStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOnlineStatus not implemented")
+}
+func (UnimplementedAutharizationServer) UserGroupPermission(context.Context, *UserGroupPermissionRequest) (*UserGroupPermissionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserGroupPermission not implemented")
 }
 func (UnimplementedAutharizationServer) mustEmbedUnimplementedAutharizationServer() {}
 
@@ -158,6 +173,24 @@ func _Autharization_GetOnlineStatus_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Autharization_UserGroupPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserGroupPermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AutharizationServer).UserGroupPermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Autharization_UserGroupPermission_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AutharizationServer).UserGroupPermission(ctx, req.(*UserGroupPermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Autharization_ServiceDesc is the grpc.ServiceDesc for Autharization service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -176,6 +209,10 @@ var Autharization_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetOnlineStatus",
 			Handler:    _Autharization_GetOnlineStatus_Handler,
+		},
+		{
+			MethodName: "UserGroupPermission",
+			Handler:    _Autharization_UserGroupPermission_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -8,6 +8,7 @@ service Autharization{
     rpc HealthCheck(Request) returns (Response){}
     rpc GetUserDetails(GetUserDetailsRequest) returns (GetUserDetailsResponse){}
     rpc GetOnlineStatus(GetOnlineStatusRequest) returns (GetOnlineStatusResponse){}
+    rpc UserGroupPermission(UserGroupPermissionRequest) returns (UserGroupPermissionResponse){}
 }
 
 message Request{
@@ -36,4 +37,15 @@ message GetOnlineStatusRequest{
 message GetOnlineStatusResponse{
     bool Status = 1;
     string Result = 2;
+}
+
+message UserGroupPermissionRequest{
+    string UserID  = 1;
+    string GroupID = 2;
+}
+
+message UserGroupPermissionResponse{
+    bool Permission = 1;
+    string Reason   = 2;
+    string ChatType = 3;
 }
