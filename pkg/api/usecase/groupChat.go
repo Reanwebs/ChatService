@@ -21,7 +21,7 @@ func NewGroupChatUsecase(repo repository.GroupChatRepoMethods) GroupChatUsecase 
 
 type GroupChatUsecaseMethods interface {
 	GroupChatStart(models.GroupChat) error
-	GetGroupList(models.GetGroupChat) ([]models.GroupChat, error)
+	GetGroupList(string) ([]models.GroupChat, error)
 	AddGroupChatHistory(models.GroupChatHistory) error
 	GetGroupChatHistory(models.GroupChatHistory) ([]models.GroupChatHistory, error)
 }
@@ -33,6 +33,7 @@ func (u GroupChatUsecase) GroupChatStart(input models.GroupChat) error {
 		GroupID:       input.GroupID,
 		GroupName:     input.GroupName,
 		GroupAvatarID: input.GroupAvatarID,
+		Permission:    input.Permission,
 		StartAt:       time.Now(),
 		LastSeen:      time.Time{},
 	}
@@ -42,9 +43,9 @@ func (u GroupChatUsecase) GroupChatStart(input models.GroupChat) error {
 	return nil
 }
 
-func (u GroupChatUsecase) GetGroupList(input models.GetGroupChat) ([]models.GroupChat, error) {
+func (u GroupChatUsecase) GetGroupList(input string) ([]models.GroupChat, error) {
 	entity := domain.GroupChat{
-		UserID: input.UserID,
+		UserID: input,
 	}
 	response, err := u.GroupChatRepo.GetGroupList(entity)
 	if err != nil {
@@ -54,10 +55,11 @@ func (u GroupChatUsecase) GetGroupList(input models.GetGroupChat) ([]models.Grou
 	var convertedResponse []models.GroupChat
 	for _, group := range response {
 		convertedResponse = append(convertedResponse, models.GroupChat{
-			UserID:   group.UserID,
-			GroupID:  group.GroupID,
-			StartAt:  group.StartAt,
-			LastSeen: group.LastSeen,
+			UserID:     group.UserID,
+			GroupID:    group.GroupID,
+			Permission: group.Permission,
+			StartAt:    group.StartAt,
+			LastSeen:   group.LastSeen,
 		})
 	}
 	return convertedResponse, nil
@@ -65,7 +67,7 @@ func (u GroupChatUsecase) GetGroupList(input models.GetGroupChat) ([]models.Grou
 
 func (u GroupChatUsecase) AddGroupChatHistory(input models.GroupChatHistory) error {
 	entity := domain.GroupChatHistory{
-		UserID:    input.GroupID,
+		UserID:    input.UserID,
 		UserName:  input.UserName,
 		GroupID:   input.GroupID,
 		GroupName: input.GroupName,

@@ -38,11 +38,22 @@ func (r GroupChatRepo) CreateGroupChat(input domain.GroupChat) error {
 		}
 		log.Println(result.Error)
 		return result.Error
-	}
-
-	if result := r.DB.Model(&groupChat).Updates(map[string]interface{}{"LastSeen": time.Now(), "group_avatar_id": input.GroupAvatarID}); result.Error != nil {
-		log.Println(result.Error)
-		return result.Error
+	} else {
+		updateData := domain.GroupChat{
+			Model:         gorm.Model{},
+			UserID:        input.UserID,
+			UserName:      input.UserName,
+			GroupID:       input.GroupID,
+			GroupName:     input.GroupName,
+			GroupAvatarID: input.GroupAvatarID,
+			Permission:    input.Permission,
+			StartAt:       time.Time{},
+			LastSeen:      time.Now(),
+		}
+		if result := r.DB.Model(&groupChat).Updates(updateData); result.Error != nil {
+			log.Println(result.Error)
+			return result.Error
+		}
 	}
 
 	return nil

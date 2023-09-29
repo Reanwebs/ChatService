@@ -57,6 +57,7 @@ type GroupChat struct {
 	GroupID       string `json:"GroupID"`
 	GroupName     string `json:"GroupName"`
 	GroupAvatarID string `json:"AvaterID"`
+	Permission    bool   `json:"Permission"`
 	StartAt       time.Time
 	LastSeen      time.Time
 }

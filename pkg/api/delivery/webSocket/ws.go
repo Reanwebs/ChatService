@@ -106,24 +106,24 @@ func (w WebSocketHandler) HandleSocketConnection(c *gin.Context) {
 }
 
 func (w WebSocketHandler) HandleGroupSocketConnection(c *gin.Context) {
-	groupName := "Golang"
-	userName := c.GetString("userId")
+	groupName := c.Query("groupName")
+	userID := c.GetString("userId")
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Println("Socket connection error:", err)
 		return
 	}
 	defer func() {
-		delete(connectedGroupClients[groupName], userName)
+		delete(connectedGroupClients[groupName], userID)
 		conn.Close()
 	}()
 	if connectedGroupClients[groupName] == nil {
 		connectedGroupClients[groupName] = make(map[string]*websocket.Conn)
 	}
 
-	connectedGroupClients[groupName][userName] = conn
+	connectedGroupClients[groupName][userID] = conn
 
-	if _, ok := connectedGroupClients[groupName][userName]; !ok {
+	if _, ok := connectedGroupClients[groupName][userID]; !ok {
 		connectedMessage := []byte("Connected to the group chat")
 		err = conn.WriteMessage(websocket.TextMessage, connectedMessage)
 		if err != nil {
@@ -144,7 +144,7 @@ func (w WebSocketHandler) HandleGroupSocketConnection(c *gin.Context) {
 		}
 
 		for clientName, clientConn := range connectedGroupClients[groupName] {
-			if clientName != userName {
+			if clientName != userID {
 				err := clientConn.WriteMessage(websocket.TextMessage, p)
 				if err != nil {
 					log.Println("Error forwarding message to group member:", err)
@@ -156,7 +156,7 @@ func (w WebSocketHandler) HandleGroupSocketConnection(c *gin.Context) {
 			log.Println("Error decoding WebSocket message:", err)
 		}
 
-		w.AddGroupChatHistory(userName, groupName, wsMessage, c)
+		w.AddGroupChatHistory(userID, groupName, wsMessage, c)
 	}
 }
 

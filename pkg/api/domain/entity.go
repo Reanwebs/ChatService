@@ -37,6 +37,7 @@ type GroupChat struct {
 	GroupID       string
 	GroupName     string
 	GroupAvatarID string
+	Permission    bool
 	StartAt       time.Time
 	LastSeen      time.Time
 }
