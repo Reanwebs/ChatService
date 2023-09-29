@@ -6,7 +6,6 @@ import (
 	"chat/pkg/api/delivery/models"
 	"chat/pkg/api/usecase"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"sort"
@@ -125,12 +124,8 @@ func (h ChatHandler) PrivateChatHistory(c *gin.Context) {
 
 // Group Chat Handlers
 func (h ChatHandler) GetGroupChatList(c *gin.Context) {
-	var model models.GetGroupChat
-	if err = c.ShouldBindJSON(&model); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, errors.Join(errors.New("JSON Binding failed"), err))
-		return
-	}
-	response, err := h.GroupChatUsecase.GetGroupList(model)
+	userID := c.GetString("userId")
+	response, err := h.GroupChatUsecase.GetGroupList(userID)
 	if err != nil {
 		log.Println(err, "error retrieving grouplist")
 		c.JSON(http.StatusBadRequest, err)
@@ -143,19 +138,22 @@ func (h ChatHandler) GetGroupChatList(c *gin.Context) {
 }
 
 func (h ChatHandler) StartGroupChat(c *gin.Context) {
+	userID := c.GetString("userId")
 	var model models.GroupChat
 	if err = c.ShouldBindJSON(&model); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, errors.Join(errors.New("JSON Binding failed"), err))
 		return
 	}
-	res, err := h.AuthClient.UserGroupPermission(c, &client.UserGroupPermissionRequest{
-		UserID:  model.UserID,
-		GroupID: model.GroupID,
-	})
-	if res.Permission == false {
-		c.JSON(http.StatusBadRequest, errors.Join(errors.New("Permission Denied"), err))
-		return
-	}
+	// res, err := h.AuthClient.UserGroupPermission(c, &client.UserGroupPermissionRequest{
+	// 	UserID:  model.UserID,
+	// 	GroupID: model.GroupID,
+	// })
+	// if res.Permission == false {
+	// 	c.JSON(http.StatusBadRequest, errors.Join(errors.New("Permission Denied"), err))
+	// 	return
+	// }
+	model.UserID = userID
+	model.Permission = true
 	if err = h.GroupChatUsecase.GroupChatStart(model); err != nil {
 		log.Println(err, "error starting groupchat")
 		c.JSON(http.StatusBadRequest, err)
@@ -170,7 +168,7 @@ func (h ChatHandler) GetGroupChatHistory(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, errors.Join(errors.New("JSON Binding failed"), err))
 		return
 	}
-	fmt.Println(model)
+	model.UserID = c.GetString("userId")
 	response, err := h.GroupChatUsecase.GetGroupChatHistory(model)
 	if err != nil {
 		log.Println(err, "error retrieving groupchat")
