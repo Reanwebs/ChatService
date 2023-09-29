@@ -148,6 +148,14 @@ func (h ChatHandler) StartGroupChat(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, errors.Join(errors.New("JSON Binding failed"), err))
 		return
 	}
+	res, err := h.AuthClient.UserGroupPermission(c, &client.UserGroupPermissionRequest{
+		UserID:  model.UserID,
+		GroupID: model.GroupID,
+	})
+	if res.Permission == false {
+		c.JSON(http.StatusBadRequest, errors.Join(errors.New("Permission Denied"), err))
+		return
+	}
 	if err = h.GroupChatUsecase.GroupChatStart(model); err != nil {
 		log.Println(err, "error starting groupchat")
 		c.JSON(http.StatusBadRequest, err)
