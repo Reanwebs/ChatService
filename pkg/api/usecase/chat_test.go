@@ -39,6 +39,11 @@ func (m *MockPrivateChatRepo) AddPrivateChatHistory(entity domain.PrivateChatHis
 }
 
 func (m *MockPrivateChatRepo) GetChatList(UserID string) ([]models.PrivateChat, []models.PrivateChat, error) {
+	args := m.Called(UserID)
+	if args.Get(2) != nil {
+		return nil, nil, args.Error(2)
+	}
+
 	existingChatList := []models.PrivateChat{}
 	newChatList := []models.PrivateChat{}
 	return existingChatList, newChatList, nil
