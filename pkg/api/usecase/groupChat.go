@@ -67,7 +67,7 @@ func (u GroupChatUsecase) GetGroupList(input string) ([]models.GroupChat, error)
 
 func (u GroupChatUsecase) AddGroupChatHistory(input models.GroupChatHistory) error {
 	entity := domain.GroupChatHistory{
-		UserID:    input.GroupID,
+		UserID:    input.UserID,
 		UserName:  input.UserName,
 		GroupID:   input.GroupID,
 		GroupName: input.GroupName,
