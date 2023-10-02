@@ -4,6 +4,8 @@ WORKDIR /app
 
 ADD . /app
 
+COPY app.env /app/cmd/app.env
+
 WORKDIR /app/cmd
 
 RUN go mod download
