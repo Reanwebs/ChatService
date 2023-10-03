@@ -4,7 +4,7 @@ WORKDIR /app
 
 ADD . /app
 
-COPY app.env /app/cmd/app.env
+COPY .env /app/cmd/.env
 
 WORKDIR /app/cmd
 
