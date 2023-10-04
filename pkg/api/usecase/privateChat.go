@@ -58,7 +58,20 @@ func (r PrivateChatUsecase) PrivateChatList(input models.GetChat) ([]models.Priv
 			newChatList[i].UserName, newChatList[i].RecipientName = newChatList[i].RecipientName, newChatList[i].UserName
 		}
 	}
-	combinedChatList := append(existingChatList, newChatList...)
+	existingRecipientNames := make(map[string]struct{})
+	for _, chat := range existingChatList {
+		existingRecipientNames[chat.RecipientName] = struct{}{}
+	}
+
+	filteredNewChatList := []models.PrivateChat{}
+	for _, chat := range newChatList {
+		_, exists := existingRecipientNames[chat.RecipientName]
+		if !exists {
+			filteredNewChatList = append(filteredNewChatList, chat)
+		}
+	}
+
+	combinedChatList := append(existingChatList, filteredNewChatList...)
 	return combinedChatList, nil
 }
 
