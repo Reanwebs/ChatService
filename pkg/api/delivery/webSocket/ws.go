@@ -142,20 +142,18 @@ func (w WebSocketHandler) HandleGroupSocketConnection(c *gin.Context) {
 			log.Println("Empty WebSocket message received")
 			continue
 		}
-
-		for clientName, clientConn := range connectedGroupClients[groupID] {
-			if clientName != userID {
+		var wsMessage models.WebSocketGroupMessage
+		if err := json.Unmarshal(p, &wsMessage); err != nil {
+			log.Println("Error decoding WebSocket message:", err)
+		}
+		for clientID, clientConn := range connectedGroupClients[wsMessage.GroupID] {
+			if clientID != userID {
 				err := clientConn.WriteMessage(websocket.TextMessage, p)
 				if err != nil {
 					log.Println("Error forwarding message to group member:", err)
 				}
 			}
 		}
-		var wsMessage models.WebSocketGroupMessage
-		if err := json.Unmarshal(p, &wsMessage); err != nil {
-			log.Println("Error decoding WebSocket message:", err)
-		}
-
 		w.AddGroupChatHistory(userID, groupID, wsMessage, c)
 	}
 }

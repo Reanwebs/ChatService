@@ -79,7 +79,8 @@ type GroupChatHistory struct {
 type WebSocketGroupMessage struct {
 	Text       string `json:"text"`
 	SenderName string `json:"sender"`
-	GroupName  string `json:"recipient"`
+	GroupName  string `json:"groupName"`
+	GroupID    string `json:"groupId"`
 }
 
 type WebSocketPublicMessage struct {
