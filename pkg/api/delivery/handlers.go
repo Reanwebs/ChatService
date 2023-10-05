@@ -145,16 +145,24 @@ func (h ChatHandler) StartGroupChat(c *gin.Context) {
 		return
 	}
 	res, err := h.AuthClient.UserGroupPermission(c, &client.UserGroupPermissionRequest{
-		UserID:  model.UserID,
+		UserID:  userID,
 		GroupID: model.GroupID,
 	})
 	if res.Permission != true {
 		c.JSON(http.StatusBadRequest, errors.Join(errors.New("Permission Denied"), err))
 		return
 	}
-	model.UserID = userID
-	model.Permission = true
-	if err = h.GroupChatUsecase.GroupChatStart(model); err != nil {
+	input := models.GroupChat{
+		UserID:        userID,
+		UserName:      res.UserName,
+		GroupID:       model.GroupID,
+		GroupName:     res.GroupName,
+		GroupAvatarID: res.GroupAvatarID,
+		Permission:    res.Permission,
+		StartAt:       time.Time{},
+		LastSeen:      time.Time{},
+	}
+	if err = h.GroupChatUsecase.GroupChatStart(input); err != nil {
 		log.Println(err, "error starting groupchat")
 		c.JSON(http.StatusBadRequest, err)
 		return

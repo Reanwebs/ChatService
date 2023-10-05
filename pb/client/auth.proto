@@ -48,4 +48,7 @@ message UserGroupPermissionResponse{
     bool Permission = 1;
     string Reason   = 2;
     string ChatType = 3;
+    string GroupName= 4;
+    string GroupAvatarID =5;
+    string UserName  = 6;
 }
