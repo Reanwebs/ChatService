@@ -242,7 +242,7 @@ func (w WebSocketHandler) AddGroupChatHistory(userId string, groupId string, mes
 	input := models.GroupChatHistory{
 		UserID:    userId,
 		UserName:  message.SenderName,
-		GroupID:   groupId,
+		GroupID:   message.GroupID,
 		GroupName: message.GroupName,
 		Text:      message.Text,
 		Status:    "delivered",
