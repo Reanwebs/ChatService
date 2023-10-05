@@ -97,10 +97,13 @@ func (u GroupChatUsecase) GetGroupChatHistory(input models.GroupChatHistory) ([]
 	var convertedResponse []models.GroupChatHistory
 	for _, groupChat := range response {
 		convertedResponse = append(convertedResponse, models.GroupChatHistory{
-			GroupID: groupChat.GroupID,
-			Text:    groupChat.Text,
-			Status:  groupChat.Status,
-			Time:    time.Time{},
+			UserID:    groupChat.UserID,
+			UserName:  groupChat.UserName,
+			GroupID:   groupChat.GroupID,
+			GroupName: groupChat.GroupName,
+			Text:      groupChat.Text,
+			Status:    groupChat.Status,
+			Time:      time.Time{},
 		})
 	}
 	return convertedResponse, nil
