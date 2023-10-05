@@ -50,5 +50,4 @@ message UserGroupPermissionResponse{
     string ChatType = 3;
     string GroupName= 4;
     string GroupAvatarID =5;
-    string UserName  = 6;
 }

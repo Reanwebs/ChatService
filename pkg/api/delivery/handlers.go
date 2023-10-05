@@ -154,7 +154,7 @@ func (h ChatHandler) StartGroupChat(c *gin.Context) {
 	}
 	input := models.GroupChat{
 		UserID:        userID,
-		UserName:      res.UserName,
+		UserName:      model.UserName,
 		GroupID:       model.GroupID,
 		GroupName:     res.GroupName,
 		GroupAvatarID: res.GroupAvatarID,
