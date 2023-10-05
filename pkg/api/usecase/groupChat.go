@@ -56,7 +56,7 @@ func (u GroupChatUsecase) GetGroupList(input string) ([]models.GroupChat, error)
 	for _, group := range response {
 		convertedResponse = append(convertedResponse, models.GroupChat{
 			UserID:        group.UserID,
-			UserName:      group.GroupName,
+			UserName:      group.UserName,
 			GroupID:       group.GroupID,
 			GroupName:     group.GroupName,
 			GroupAvatarID: group.GroupAvatarID,
