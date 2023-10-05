@@ -106,7 +106,7 @@ func (w WebSocketHandler) HandleSocketConnection(c *gin.Context) {
 }
 
 func (w WebSocketHandler) HandleGroupSocketConnection(c *gin.Context) {
-	groupName := c.Query("groupName")
+	groupID := c.Query("groupName")
 	userID := c.GetString("userId")
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
@@ -114,16 +114,16 @@ func (w WebSocketHandler) HandleGroupSocketConnection(c *gin.Context) {
 		return
 	}
 	defer func() {
-		delete(connectedGroupClients[groupName], userID)
+		delete(connectedGroupClients[groupID], userID)
 		conn.Close()
 	}()
-	if connectedGroupClients[groupName] == nil {
-		connectedGroupClients[groupName] = make(map[string]*websocket.Conn)
+	if connectedGroupClients[groupID] == nil {
+		connectedGroupClients[groupID] = make(map[string]*websocket.Conn)
 	}
 
-	connectedGroupClients[groupName][userID] = conn
+	connectedGroupClients[groupID][userID] = conn
 
-	if _, ok := connectedGroupClients[groupName][userID]; !ok {
+	if _, ok := connectedGroupClients[groupID][userID]; !ok {
 		connectedMessage := []byte("Connected to the group chat")
 		err = conn.WriteMessage(websocket.TextMessage, connectedMessage)
 		if err != nil {
@@ -143,7 +143,7 @@ func (w WebSocketHandler) HandleGroupSocketConnection(c *gin.Context) {
 			continue
 		}
 
-		for clientName, clientConn := range connectedGroupClients[groupName] {
+		for clientName, clientConn := range connectedGroupClients[groupID] {
 			if clientName != userID {
 				err := clientConn.WriteMessage(websocket.TextMessage, p)
 				if err != nil {
@@ -156,7 +156,7 @@ func (w WebSocketHandler) HandleGroupSocketConnection(c *gin.Context) {
 			log.Println("Error decoding WebSocket message:", err)
 		}
 
-		w.AddGroupChatHistory(userID, groupName, wsMessage, c)
+		w.AddGroupChatHistory(userID, groupID, wsMessage, c)
 	}
 }
 
